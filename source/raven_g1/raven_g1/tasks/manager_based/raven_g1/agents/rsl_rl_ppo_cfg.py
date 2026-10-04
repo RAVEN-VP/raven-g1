@@ -7,7 +7,7 @@ from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.agents.rsl_rl_pp
 
 @configclass
 class RavenG1PPORunnerCfg(G1FlatPPORunnerCfg):
-    """RSL-RL PPO configuration for RAVEN G1."""
+    """RSL-RL PPO configuration for the RAVEN G1 locomotion layer."""
 
     def __post_init__(self):
         super().__post_init__()

@@ -12,109 +12,160 @@ if TYPE_CHECKING:
 
 
 # -----------------------------------------------------------------------------
+# Camera-link state
+# -----------------------------------------------------------------------------
+
+
+def _camera_state_w(
+    env: ManagerBasedRLEnv,
+    camera_cfg: SceneEntityCfg,
+):
+    """Return physical camera-link state in world coordinates."""
+
+    tripod_camera = env.scene[
+        camera_cfg.name
+    ]
+
+    camera_body_id = (
+        camera_cfg.body_ids[0]
+    )
+
+    camera_position_w = (
+        tripod_camera.data.body_pos_w[
+            :,
+            camera_body_id,
+        ]
+    )
+
+    camera_quat_w = (
+        tripod_camera.data.body_quat_w[
+            :,
+            camera_body_id,
+        ]
+    )
+
+    camera_velocity_w = (
+        tripod_camera.data.body_lin_vel_w[
+            :,
+            camera_body_id,
+        ]
+    )
+
+    return (
+        camera_position_w,
+        camera_quat_w,
+        camera_velocity_w,
+    )
+
+
+# -----------------------------------------------------------------------------
 # Internal helpers
 # -----------------------------------------------------------------------------
 
 
 def _target_position_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Return target position relative to the camera frame in full 3D.
 
-    Camera-frame convention used by RAVEN:
+    target = env.scene[
+        target_cfg.name
+    ]
 
-        +X = forward / depth
-        +Y = left-right
-        +Z = up-down
-    """
+    (
+        camera_position_w,
+        camera_quat_w,
+        _,
+    ) = _camera_state_w(
+        env,
+        camera_cfg,
+    )
 
-    camera_rig = env.scene[camera_rig_cfg.name]
-    target = env.scene[target_cfg.name]
-
-    # World-space vector from camera to target.
     target_delta_w = (
         target.data.root_pos_w
-        - camera_rig.data.root_pos_w
+        - camera_position_w
     )
 
-    # Convert the world-space vector into the camera's local frame.
-    target_delta_camera = quat_apply_inverse(
-        camera_rig.data.root_quat_w,
+    return quat_apply_inverse(
+        camera_quat_w,
         target_delta_w,
     )
-
-    return target_delta_camera
 
 
 def _target_relative_velocity_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Return target velocity relative to the camera in full 3D."""
 
-    camera_rig = env.scene[camera_rig_cfg.name]
-    target = env.scene[target_cfg.name]
+    target = env.scene[
+        target_cfg.name
+    ]
+
+    (
+        _,
+        camera_quat_w,
+        camera_velocity_w,
+    ) = _camera_state_w(
+        env,
+        camera_cfg,
+    )
 
     relative_velocity_w = (
         target.data.root_lin_vel_w
-        - camera_rig.data.root_lin_vel_w
+        - camera_velocity_w
     )
 
-    relative_velocity_camera = quat_apply_inverse(
-        camera_rig.data.root_quat_w,
+    return quat_apply_inverse(
+        camera_quat_w,
         relative_velocity_w,
     )
 
-    return relative_velocity_camera
-
 
 # -----------------------------------------------------------------------------
-# RAVEN camera-tracking observations
+# RAVEN observations
 # -----------------------------------------------------------------------------
 
 
 def target_position_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Target position in camera frame: [forward, lateral, vertical]."""
 
     return _target_position_camera(
         env,
-        camera_rig_cfg,
+        camera_cfg,
         target_cfg,
     )
 
 
 def target_relative_velocity_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Target velocity relative to camera: [vx, vy, vz]."""
 
     return _target_relative_velocity_camera(
         env,
-        camera_rig_cfg,
+        camera_cfg,
         target_cfg,
     )
 
 
 def target_distance_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """3D distance from camera to target."""
 
-    position_camera = _target_position_camera(
-        env,
-        camera_rig_cfg,
-        target_cfg,
+    position_camera = (
+        _target_position_camera(
+            env,
+            camera_cfg,
+            target_cfg,
+        )
     )
 
     return torch.linalg.vector_norm(
@@ -126,36 +177,35 @@ def target_distance_camera(
 
 def target_distance_error_camera(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
     desired_distance: float = 2.0,
 ) -> torch.Tensor:
-    """Signed camera-to-target distance error.
-
-    Positive = camera is too far away.
-    Negative = camera is too close.
-    """
 
     distance = target_distance_camera(
         env,
-        camera_rig_cfg,
+        camera_cfg,
         target_cfg,
     )
 
-    return distance - desired_distance
+    return (
+        distance
+        - desired_distance
+    )
 
 
 def target_azimuth(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Horizontal target angle relative to camera forward."""
 
-    position_camera = _target_position_camera(
-        env,
-        camera_rig_cfg,
-        target_cfg,
+    position_camera = (
+        _target_position_camera(
+            env,
+            camera_cfg,
+            target_cfg,
+        )
     )
 
     azimuth = torch.atan2(
@@ -168,20 +218,20 @@ def target_azimuth(
 
 def target_azimuth_sin_cos(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Continuous horizontal framing angle representation."""
 
     azimuth = target_azimuth(
         env,
-        camera_rig_cfg,
+        camera_cfg,
         target_cfg,
     )
 
     return torch.cat(
         (
             torch.sin(azimuth),
+
             torch.cos(azimuth),
         ),
         dim=-1,
@@ -190,24 +240,29 @@ def target_azimuth_sin_cos(
 
 def target_elevation(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Vertical target angle relative to camera forward."""
 
-    position_camera = _target_position_camera(
-        env,
-        camera_rig_cfg,
-        target_cfg,
+    position_camera = (
+        _target_position_camera(
+            env,
+            camera_cfg,
+            target_cfg,
+        )
     )
 
     horizontal_distance = torch.sqrt(
+
         position_camera[:, 0].square()
+
         + position_camera[:, 1].square()
     )
 
     elevation = torch.atan2(
+
         position_camera[:, 2],
+
         horizontal_distance,
     )
 
@@ -216,20 +271,20 @@ def target_elevation(
 
 def target_elevation_sin_cos(
     env: ManagerBasedRLEnv,
-    camera_rig_cfg: SceneEntityCfg,
+    camera_cfg: SceneEntityCfg,
     target_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Continuous vertical framing angle representation."""
 
     elevation = target_elevation(
         env,
-        camera_rig_cfg,
+        camera_cfg,
         target_cfg,
     )
 
     return torch.cat(
         (
             torch.sin(elevation),
+
             torch.cos(elevation),
         ),
         dim=-1,

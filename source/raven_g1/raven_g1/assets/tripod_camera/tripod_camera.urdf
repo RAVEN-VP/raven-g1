@@ -1,0 +1,365 @@
+<?xml version="1.0"?>
+
+<robot name="raven_tripod_camera">
+
+    <!-- ============================================================= -->
+    <!-- Materials                                                     -->
+    <!-- ============================================================= -->
+
+    <material name="dark_metal">
+        <color rgba="0.08 0.08 0.10 1.0"/>
+    </material>
+
+    <material name="mid_metal">
+        <color rgba="0.16 0.16 0.18 1.0"/>
+    </material>
+
+    <material name="camera_black">
+        <color rgba="0.03 0.03 0.04 1.0"/>
+    </material>
+
+    <material name="handle_grey">
+        <color rgba="0.22 0.22 0.24 1.0"/>
+    </material>
+
+
+    <!-- ============================================================= -->
+    <!-- FIXED TRIPOD BASE                                             -->
+    <!-- ============================================================= -->
+
+    <link name="base_link">
+
+        <inertial>
+            <origin xyz="0 0 0.03"/>
+            <mass value="4.0"/>
+            <inertia
+                ixx="0.040"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.040"
+                iyz="0.0"
+                izz="0.077"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0.03"/>
+            <geometry>
+                <box size="0.34 0.34 0.06"/>
+            </geometry>
+            <material name="dark_metal"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0.03"/>
+            <geometry>
+                <box size="0.34 0.34 0.06"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+
+    <!-- ============================================================= -->
+    <!-- TRIPOD COLUMN                                                 -->
+    <!-- ============================================================= -->
+
+    <link name="column_link">
+
+        <inertial>
+            <origin xyz="0 0 0.41"/>
+            <mass value="2.0"/>
+            <inertia
+                ixx="0.113"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.113"
+                iyz="0.0"
+                izz="0.0012"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0.41"/>
+            <geometry>
+                <box size="0.055 0.055 0.82"/>
+            </geometry>
+            <material name="mid_metal"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0.41"/>
+            <geometry>
+                <box size="0.055 0.055 0.82"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+    <joint name="base_to_column" type="fixed">
+
+        <parent link="base_link"/>
+        <child link="column_link"/>
+
+        <origin
+            xyz="0 0 0.06"
+            rpy="0 0 0"/>
+
+    </joint>
+
+
+    <!-- ============================================================= -->
+    <!-- PAN HEAD                                                      -->
+    <!-- ============================================================= -->
+
+    <link name="pan_link">
+
+        <inertial>
+            <origin xyz="0 0 0.04"/>
+            <mass value="0.6"/>
+            <inertia
+                ixx="0.0013"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.0013"
+                iyz="0.0"
+                izz="0.0019"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0.04"/>
+            <geometry>
+                <cylinder
+                    radius="0.075"
+                    length="0.08"/>
+            </geometry>
+            <material name="dark_metal"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0.04"/>
+            <geometry>
+                <cylinder
+                    radius="0.075"
+                    length="0.08"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+
+    <!-- ============================================================= -->
+    <!-- PAN JOINT                                                     -->
+    <!--                                                               -->
+    <!-- Camera rotates LEFT / RIGHT around Z.                          -->
+    <!-- About +/-170 degrees.                                         -->
+    <!-- ============================================================= -->
+
+    <joint name="pan_joint" type="revolute">
+
+        <parent link="column_link"/>
+        <child link="pan_link"/>
+
+        <origin
+            xyz="0 0 0.82"
+            rpy="0 0 0"/>
+
+        <axis xyz="0 0 1"/>
+
+        <limit
+            lower="-2.967"
+            upper="2.967"
+            effort="20.0"
+            velocity="1.5"/>
+
+        <dynamics
+            damping="0.25"
+            friction="0.10"/>
+
+    </joint>
+
+
+    <!-- ============================================================= -->
+    <!-- TILT CRADLE                                                   -->
+    <!-- ============================================================= -->
+
+    <link name="tilt_link">
+
+        <inertial>
+            <origin xyz="0 0 0"/>
+            <mass value="0.5"/>
+            <inertia
+                ixx="0.0009"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.0014"
+                iyz="0.0"
+                izz="0.0017"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.16 0.12 0.08"/>
+            </geometry>
+            <material name="mid_metal"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.16 0.12 0.08"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+
+    <!-- ============================================================= -->
+    <!-- TILT JOINT                                                    -->
+    <!--                                                               -->
+    <!-- Camera rotates UP / DOWN around Y.                             -->
+    <!-- +/-45 degrees initially.                                      -->
+    <!-- ============================================================= -->
+
+    <joint name="tilt_joint" type="revolute">
+
+        <parent link="pan_link"/>
+        <child link="tilt_link"/>
+
+        <origin
+            xyz="0 0 0.08"
+            rpy="0 0 0"/>
+
+        <axis xyz="0 1 0"/>
+
+        <limit
+            lower="-0.785398"
+            upper="0.785398"
+            effort="20.0"
+            velocity="1.5"/>
+
+        <dynamics
+            damping="0.25"
+            friction="0.10"/>
+
+    </joint>
+
+
+    <!-- ============================================================= -->
+    <!-- CAMERA                                                        -->
+    <!--                                                               -->
+    <!-- +X = optical forward direction.                               -->
+    <!--                                                               -->
+    <!-- Camera POSITION stays on tripod.                              -->
+    <!-- Camera ORIENTATION changes with pan + tilt.                    -->
+    <!-- ============================================================= -->
+
+    <link name="camera_link">
+
+        <inertial>
+            <origin xyz="0 0 0"/>
+            <mass value="1.5"/>
+            <inertia
+                ixx="0.0057"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.0090"
+                iyz="0.0"
+                izz="0.0104"/>
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.24 0.16 0.14"/>
+            </geometry>
+            <material name="camera_black"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0"/>
+            <geometry>
+                <box size="0.24 0.16 0.14"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+    <joint name="tilt_to_camera" type="fixed">
+
+        <parent link="tilt_link"/>
+        <child link="camera_link"/>
+
+        <origin
+            xyz="0.13 0 0.05"
+            rpy="0 0 0"/>
+
+    </joint>
+
+
+    <!-- ============================================================= -->
+    <!-- PAN / TILT CONTROL HANDLE                                     -->
+    <!--                                                               -->
+    <!-- Eventually the G1 hand will manipulate this.                  -->
+    <!-- ============================================================= -->
+
+    <link name="control_handle_link">
+
+        <inertial>
+            <origin xyz="0 0 0"/>
+            <mass value="0.3"/>
+            <inertia
+                ixx="0.00004"
+                ixy="0.0"
+                ixz="0.0"
+                iyy="0.0026"
+                iyz="0.0"
+                izz="0.0026"/>
+        </inertial>
+
+        <visual>
+            <origin
+                xyz="0 0 0"
+                rpy="0 1.57079632679 0"/>
+
+            <geometry>
+                <cylinder
+                    radius="0.018"
+                    length="0.32"/>
+            </geometry>
+
+            <material name="handle_grey"/>
+        </visual>
+
+        <collision>
+            <origin
+                xyz="0 0 0"
+                rpy="0 1.57079632679 0"/>
+
+            <geometry>
+                <cylinder
+                    radius="0.018"
+                    length="0.32"/>
+            </geometry>
+        </collision>
+
+    </link>
+
+    <joint name="tilt_to_handle" type="fixed">
+
+    <parent link="tilt_link"/>
+    <child link="control_handle_link"/>
+
+    <!--
+        Real tripod pan handle:
+        approximately 45 degrees downward toward the operator/G1.
+
+        Rotation about local Y changes the previously horizontal
+        X-axis handle into the correct downward/backward orientation.
+    -->
+    <origin
+        xyz="-0.16 0.14 -0.05"
+        rpy="0 -0.78539816339 0"/>
+
+    </joint>
+
+</robot>

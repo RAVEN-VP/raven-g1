@@ -1,8 +1,18 @@
-"""RAVEN G1 target-following demo.
+"""RAVEN G1 camera-tracking validation demo.
 
-A deterministic high-level controller converts the moving target position
-into velocity commands. NVIDIA's pretrained G1 locomotion policy executes
-those commands at the joint level.
+This script currently runs two controllers:
+
+1. A deterministic G1-follow controller.
+   - Generates [vx, vy, yaw_rate].
+   - NVIDIA's pretrained G1 policy converts this into 37 joint actions.
+
+2. A deterministic camera/tripod controller.
+   - Consumes the 12-value camera-centric RAVEN observation.
+   - Generates:
+       [forward, lateral, vertical, pan_rate, tilt_rate]
+
+The camera controller is a temporary deterministic baseline.
+Later it will be replaced by the trainable RAVEN policy.
 """
 
 import argparse
@@ -11,11 +21,11 @@ from isaaclab.app import AppLauncher
 
 
 # -----------------------------------------------------------------------------
-# Arguments / Isaac Sim launch
+# Command-line arguments / Isaac Sim launch
 # -----------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser(
-    description="RAVEN G1 target-following demo."
+    description="RAVEN G1 camera tracking and target-following demo."
 )
 
 parser.add_argument(
@@ -46,7 +56,10 @@ import torch
 from packaging import version
 from rsl_rl.runners import OnPolicyRunner
 
-from isaaclab.utils.math import quat_apply_inverse, yaw_quat
+from isaaclab.utils.math import (
+    quat_apply_inverse,
+    yaw_quat,
+)
 
 from isaaclab_rl.rsl_rl import (
     RslRlVecEnvWrapper,
@@ -69,10 +82,12 @@ from raven_g1.tasks.manager_based.raven_g1.agents.rsl_rl_ppo_cfg import (
     RavenG1PPORunnerCfg,
 )
 
+from raven_g1.tasks.manager_based.raven_g1 import mdp
 
-# -----------------------------------------------------------------------------
-# Follow-controller settings
-# -----------------------------------------------------------------------------
+
+# =============================================================================
+# G1 deterministic follower settings
+# =============================================================================
 
 DESIRED_DISTANCE = 2.0
 
@@ -83,23 +98,50 @@ MAX_FORWARD_SPEED = 0.8
 MAX_YAW_RATE = 1.0
 
 
-# -----------------------------------------------------------------------------
-# High-level RAVEN controller
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Camera / tripod deterministic controller settings
+# =============================================================================
+
+CAMERA_DISTANCE_GAIN = 0.45
+
+CAMERA_LATERAL_GAIN = 0.20
+CAMERA_VERTICAL_GAIN = 0.20
+
+CAMERA_PAN_GAIN = 1.8
+CAMERA_TILT_GAIN = 1.5
+
+CAMERA_MAX_FORWARD_SPEED = 0.25
+CAMERA_MAX_LATERAL_SPEED = 0.20
+CAMERA_MAX_VERTICAL_SPEED = 0.10
+
+CAMERA_MAX_PAN_RATE = 0.80
+CAMERA_MAX_TILT_RATE = 0.60
+
+
+# =============================================================================
+# G1 high-level follower
+# =============================================================================
+
 
 def compute_follow_command(robot, target):
-    """Generate [forward velocity, lateral velocity, yaw rate]."""
+    """Generate [forward velocity, lateral velocity, yaw rate] for G1."""
 
-    # World-space vector from G1 to target.
+    # ------------------------------------------------------------------
+    # Vector from robot to target in world space.
+    # ------------------------------------------------------------------
+
     target_delta_w = (
         target.data.root_pos_w
         - robot.data.root_pos_w
     ).clone()
 
-    # Ignore vertical separation for ground-plane following.
+    # G1 locomotion remains ground-plane locomotion.
     target_delta_w[:, 2] = 0.0
 
-    # Convert the vector into the G1's yaw-relative body frame.
+    # ------------------------------------------------------------------
+    # Convert target vector into the G1 yaw frame.
+    # ------------------------------------------------------------------
+
     robot_yaw_w = yaw_quat(
         robot.data.root_quat_w
     )
@@ -123,7 +165,7 @@ def compute_follow_command(robot, target):
     )
 
     # ------------------------------------------------------------------
-    # Forward command
+    # Forward velocity
     # ------------------------------------------------------------------
 
     distance_error = (
@@ -142,7 +184,7 @@ def compute_follow_command(robot, target):
         max=MAX_FORWARD_SPEED,
     )
 
-    # If the target is significantly off-axis, prioritise turning.
+    # Turn before moving aggressively if the target is off-axis.
     facing_factor = torch.clamp(
         torch.cos(bearing),
         min=0.0,
@@ -152,7 +194,7 @@ def compute_follow_command(robot, target):
     forward_speed *= facing_factor
 
     # ------------------------------------------------------------------
-    # Yaw command
+    # Yaw
     # ------------------------------------------------------------------
 
     yaw_rate = (
@@ -166,7 +208,7 @@ def compute_follow_command(robot, target):
         max=MAX_YAW_RATE,
     )
 
-    # No strafing for our first deterministic baseline.
+    # No G1 strafing for this baseline.
     lateral_speed = torch.zeros_like(
         forward_speed
     )
@@ -188,9 +230,163 @@ def compute_follow_command(robot, target):
     )
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Camera / tripod high-level controller
+# =============================================================================
+
+
+def compute_camera_rig_command(raven_obs):
+    """Convert the 12 RAVEN observations into a 5-DOF camera command.
+
+    Input observation layout:
+
+        [0]  target X in camera frame
+        [1]  target Y in camera frame
+        [2]  target Z in camera frame
+
+        [3]  target relative velocity X
+        [4]  target relative velocity Y
+        [5]  target relative velocity Z
+
+        [6]  camera-target 3D distance
+        [7]  shot-distance error
+
+        [8]  sin(azimuth)
+        [9]  cos(azimuth)
+
+        [10] sin(elevation)
+        [11] cos(elevation)
+
+    Output command:
+
+        [0] forward velocity
+        [1] lateral velocity
+        [2] vertical velocity
+        [3] pan rate
+        [4] tilt rate
+    """
+
+    # ------------------------------------------------------------------
+    # Target position
+    # ------------------------------------------------------------------
+
+    target_y = raven_obs[:, 1]
+    target_z = raven_obs[:, 2]
+
+    # ------------------------------------------------------------------
+    # Shot distance
+    # ------------------------------------------------------------------
+
+    distance_error = raven_obs[:, 7]
+
+    # ------------------------------------------------------------------
+    # Recover angular errors
+    # ------------------------------------------------------------------
+
+    azimuth = torch.atan2(
+        raven_obs[:, 8],
+        raven_obs[:, 9],
+    )
+
+    elevation = torch.atan2(
+        raven_obs[:, 10],
+        raven_obs[:, 11],
+    )
+
+    # ------------------------------------------------------------------
+    # Dolly forward / backward
+    # ------------------------------------------------------------------
+
+    forward_speed = (
+        CAMERA_DISTANCE_GAIN
+        * distance_error
+    )
+
+    forward_speed = torch.clamp(
+        forward_speed,
+        -CAMERA_MAX_FORWARD_SPEED,
+        CAMERA_MAX_FORWARD_SPEED,
+    )
+
+    # ------------------------------------------------------------------
+    # Truck left / right
+    #
+    # Pan does most of the immediate horizontal framing correction.
+    # Lateral movement is deliberately slower and smoother.
+    # ------------------------------------------------------------------
+
+    lateral_speed = (
+        CAMERA_LATERAL_GAIN
+        * target_y
+    )
+
+    lateral_speed = torch.clamp(
+        lateral_speed,
+        -CAMERA_MAX_LATERAL_SPEED,
+        CAMERA_MAX_LATERAL_SPEED,
+    )
+
+    # ------------------------------------------------------------------
+    # Pedestal up / down
+    # ------------------------------------------------------------------
+
+    vertical_speed = (
+        CAMERA_VERTICAL_GAIN
+        * target_z
+    )
+
+    vertical_speed = torch.clamp(
+        vertical_speed,
+        -CAMERA_MAX_VERTICAL_SPEED,
+        CAMERA_MAX_VERTICAL_SPEED,
+    )
+
+    # ------------------------------------------------------------------
+    # Pan
+    # ------------------------------------------------------------------
+
+    pan_rate = (
+        CAMERA_PAN_GAIN
+        * azimuth
+    )
+
+    pan_rate = torch.clamp(
+        pan_rate,
+        -CAMERA_MAX_PAN_RATE,
+        CAMERA_MAX_PAN_RATE,
+    )
+
+    # ------------------------------------------------------------------
+    # Tilt
+    # ------------------------------------------------------------------
+
+    tilt_rate = (
+        CAMERA_TILT_GAIN
+        * elevation
+    )
+
+    tilt_rate = torch.clamp(
+        tilt_rate,
+        -CAMERA_MAX_TILT_RATE,
+        CAMERA_MAX_TILT_RATE,
+    )
+
+    return torch.stack(
+        (
+            forward_speed,
+            lateral_speed,
+            vertical_speed,
+            pan_rate,
+            tilt_rate,
+        ),
+        dim=-1,
+    )
+
+
+# =============================================================================
 # Main
-# -----------------------------------------------------------------------------
+# =============================================================================
+
 
 def main():
 
@@ -208,7 +404,7 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Environment config
+    # Environment configuration
     # ------------------------------------------------------------------
 
     env_cfg = RavenG1EnvCfg_PLAY()
@@ -217,11 +413,14 @@ def main():
         args_cli.num_envs
     )
 
-    # Disable observation corruption for visual validation.
+    # Deterministic validation.
     env_cfg.observations.policy.enable_corruption = False
 
-    # Prevent stock command resampling from replacing
-    # the RAVEN-generated velocity command.
+    # ------------------------------------------------------------------
+    # Prevent Isaac Lab's stock velocity command generator from
+    # overwriting our G1 follower command.
+    # ------------------------------------------------------------------
+
     env_cfg.commands.base_velocity.resampling_time_range = (
         1.0e9,
         1.0e9,
@@ -233,7 +432,10 @@ def main():
     env_cfg.commands.base_velocity.heading_command = False
     env_cfg.commands.base_velocity.ranges.heading = None
 
-    # Start G1 at the environment origin, facing +X.
+    # ------------------------------------------------------------------
+    # Start G1 at origin facing +X.
+    # ------------------------------------------------------------------
+
     env_cfg.events.reset_base.params["pose_range"] = {
         "x": (0.0, 0.0),
         "y": (0.0, 0.0),
@@ -243,17 +445,11 @@ def main():
     env_cfg.episode_length_s = 120.0
 
     # ------------------------------------------------------------------
-    # Agent config
+    # RSL-RL agent configuration
     # ------------------------------------------------------------------
 
     agent_cfg = RavenG1PPORunnerCfg()
 
-    # CRITICAL:
-    #
-    # Convert the stock Isaac Lab / G1 configuration into the format
-    # expected by whichever RSL-RL version is actually installed.
-    #
-    # This handles the RSL-RL 4.x / 5.x configuration transition.
     agent_cfg = handle_deprecated_rsl_rl_cfg(
         agent_cfg,
         installed_rsl_rl_version,
@@ -264,7 +460,7 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Published G1 checkpoint
+    # Load NVIDIA's pretrained G1 locomotion checkpoint.
     # ------------------------------------------------------------------
 
     checkpoint_path = (
@@ -280,8 +476,6 @@ def main():
             "Isaac-Velocity-Flat-G1-v0 checkpoint."
         )
 
-    # Convert an older checkpoint layout if the installed RSL-RL
-    # version requires the newer actor/critic checkpoint structure.
     checkpoint_path = (
         handle_deprecated_rsl_rl_checkpoint(
             checkpoint_path,
@@ -298,7 +492,7 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Environment
+    # Create RAVEN environment.
     # ------------------------------------------------------------------
 
     env = gym.make(
@@ -313,9 +507,14 @@ def main():
 
     base_env = env.unwrapped
 
+    # ------------------------------------------------------------------
+    # Scene references
+    # ------------------------------------------------------------------
+
     robot = base_env.scene["robot"]
     target = base_env.scene["target"]
 
+    # Existing G1 velocity command generator.
     command_term = (
         base_env.command_manager.get_term(
             "base_velocity"
@@ -323,7 +522,7 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Pretrained locomotion policy
+    # Load pretrained G1 locomotion network.
     # ------------------------------------------------------------------
 
     runner = OnPolicyRunner(
@@ -346,10 +545,13 @@ def main():
         "[RAVEN] Pretrained G1 locomotion policy loaded successfully."
     )
     print(
-        "[RAVEN] Target follower active."
+        "[RAVEN] G1 follower active."
     )
     print(
-        f"[RAVEN] Desired stand-off distance: "
+        "[RAVEN] Camera/tripod controller active."
+    )
+    print(
+        f"[RAVEN] Desired shot distance: "
         f"{DESIRED_DISTANCE:.2f} m"
     )
     print()
@@ -359,17 +561,48 @@ def main():
 
     step = 0
 
-    # ------------------------------------------------------------------
+    # ==================================================================
     # Simulation loop
-    # ------------------------------------------------------------------
+    # ==================================================================
 
     while simulation_app.is_running():
 
         with torch.inference_mode():
 
-            # ----------------------------------------------------------
-            # RAVEN high-level target controller
-            # ----------------------------------------------------------
+            # ==========================================================
+            # 1. CAMERA / TRIPOD CONTROLLER
+            # ==========================================================
+
+            # Read the current camera-centric observation.
+            raven_obs = (
+                base_env.observation_manager.compute_group(
+                    "raven"
+                )
+            )
+
+            # Convert observation into:
+            #
+            # [forward,
+            #  lateral,
+            #  vertical,
+            #  pan_rate,
+            #  tilt_rate]
+            camera_command = (
+                compute_camera_rig_command(
+                    raven_obs
+                )
+            )
+
+            # Apply camera/tripod command.
+            mdp.apply_camera_rig_command(
+                base_env,
+                camera_command,
+                dt=base_env.step_dt,
+            )
+
+            # ==========================================================
+            # 2. EXISTING G1 FOLLOWER
+            # ==========================================================
 
             (
                 command,
@@ -381,8 +614,8 @@ def main():
                 target,
             )
 
-            # Write RAVEN's velocity target directly into the existing
-            # Unitree G1 velocity-command term.
+            # Write our G1 motion command directly into Isaac Lab's
+            # velocity command term.
             command_term.vel_command_b.copy_(
                 command
             )
@@ -390,12 +623,13 @@ def main():
             command_term.is_standing_env[:] = False
             command_term.is_heading_env[:] = False
 
-            # Recompute policy observation after injecting our command.
+            # Recompute locomotion observation now that we changed
+            # the velocity command.
             obs = env.get_observations()
 
-            # ----------------------------------------------------------
-            # Low-level pretrained G1 locomotion policy
-            # ----------------------------------------------------------
+            # ==========================================================
+            # 3. PRETRAINED LOW-LEVEL G1 POLICY
+            # ==========================================================
 
             actions = policy(
                 obs
@@ -405,7 +639,10 @@ def main():
                 actions
             )
 
-            # RSL-RL >= 4 returns an inference policy object with reset().
+            # ----------------------------------------------------------
+            # Reset policy state if an environment terminates.
+            # ----------------------------------------------------------
+
             if version.parse(
                 installed_rsl_rl_version
             ) >= version.parse("4.0.0"):
@@ -415,9 +652,10 @@ def main():
                 )
 
             else:
-                # Compatibility for old RSL-RL versions.
+
                 try:
                     policy_nn = runner.alg.policy
+
                 except AttributeError:
                     policy_nn = runner.alg.actor_critic
 
@@ -425,14 +663,14 @@ def main():
                     dones
                 )
 
-            # ----------------------------------------------------------
-            # Telemetry
-            # ----------------------------------------------------------
+            # ==========================================================
+            # 4. TELEMETRY
+            # ==========================================================
 
             if step % 50 == 0:
 
                 # ------------------------------------------------------
-                # Existing G1-follow telemetry
+                # Existing G1 telemetry
                 # ------------------------------------------------------
 
                 distance_value = (
@@ -460,79 +698,92 @@ def main():
                 )
 
                 # ------------------------------------------------------
-                # Read the new CAMERA-CENTRIC RAVEN observation group
+                # Re-read the camera observation for telemetry.
                 # ------------------------------------------------------
 
-                raven_obs = (
+                raven_obs_telemetry = (
                     base_env.observation_manager.compute_group(
                         "raven"
                     )
                 )
 
-                raven_values = raven_obs[0]
+                raven_values = (
+                    raven_obs_telemetry[0]
+                )
 
                 # ------------------------------------------------------
                 # Camera-relative target position
-                #
-                # [0] X = forward/back relative to camera
-                # [1] Y = left/right relative to camera
-                # [2] Z = up/down relative to camera
                 # ------------------------------------------------------
 
-                camera_target_x = raven_values[0].item()
-                camera_target_y = raven_values[1].item()
-                camera_target_z = raven_values[2].item()
+                camera_target_x = (
+                    raven_values[0].item()
+                )
+
+                camera_target_y = (
+                    raven_values[1].item()
+                )
+
+                camera_target_z = (
+                    raven_values[2].item()
+                )
 
                 # ------------------------------------------------------
-                # Target velocity relative to camera
-                #
-                # [3] Vx
-                # [4] Vy
-                # [5] Vz
+                # Camera-relative target velocity
                 # ------------------------------------------------------
 
-                target_vel_x = raven_values[3].item()
-                target_vel_y = raven_values[4].item()
-                target_vel_z = raven_values[5].item()
+                target_vel_x = (
+                    raven_values[3].item()
+                )
+
+                target_vel_y = (
+                    raven_values[4].item()
+                )
+
+                target_vel_z = (
+                    raven_values[5].item()
+                )
 
                 # ------------------------------------------------------
-                # 3D distance + desired shot-distance error
-                #
-                # [6] actual 3D camera-to-target distance
-                # [7] distance error from desired distance
+                # Shot distance
                 # ------------------------------------------------------
 
-                camera_distance = raven_values[6].item()
-                camera_distance_error = raven_values[7].item()
+                camera_distance = (
+                    raven_values[6].item()
+                )
+
+                camera_distance_error = (
+                    raven_values[7].item()
+                )
 
                 # ------------------------------------------------------
-                # Horizontal framing / azimuth
-                #
-                # Stored as sin/cos to avoid angle wrap discontinuities.
-                #
-                # [8] sin(azimuth)
-                # [9] cos(azimuth)
+                # Azimuth
                 # ------------------------------------------------------
 
-                azimuth_sin = raven_values[8].item()
-                azimuth_cos = raven_values[9].item()
+                azimuth_sin = (
+                    raven_values[8].item()
+                )
 
-                # ------------------------------------------------------
-                # Vertical framing / elevation
-                #
-                # [10] sin(elevation)
-                # [11] cos(elevation)
-                # ------------------------------------------------------
+                azimuth_cos = (
+                    raven_values[9].item()
+                )
 
-                elevation_sin = raven_values[10].item()
-                elevation_cos = raven_values[11].item()
-
-                # Convert sin/cos back into degrees for readable telemetry.
                 azimuth_deg = math.degrees(
                     math.atan2(
                         azimuth_sin,
                         azimuth_cos,
                     )
+                )
+
+                # ------------------------------------------------------
+                # Elevation
+                # ------------------------------------------------------
+
+                elevation_sin = (
+                    raven_values[10].item()
+                )
+
+                elevation_cos = (
+                    raven_values[11].item()
                 )
 
                 elevation_deg = math.degrees(
@@ -543,22 +794,46 @@ def main():
                 )
 
                 # ------------------------------------------------------
-                # Existing G1 locomotion telemetry
+                # Camera command telemetry
+                # ------------------------------------------------------
+
+                camera_vx = (
+                    camera_command[0, 0].item()
+                )
+
+                camera_vy = (
+                    camera_command[0, 1].item()
+                )
+
+                camera_vz = (
+                    camera_command[0, 2].item()
+                )
+
+                camera_pan_rate = (
+                    camera_command[0, 3].item()
+                )
+
+                camera_tilt_rate = (
+                    camera_command[0, 4].item()
+                )
+
+                # ------------------------------------------------------
+                # Print G1 state
                 # ------------------------------------------------------
 
                 print(
-                    "[RAVEN] "
+                    "[RAVEN G1] "
                     f"distance={distance_value:5.2f} m | "
                     f"bearing={bearing_deg:6.1f} deg | "
                     f"target_b=("
                     f"{forward_value:5.2f}, "
                     f"{lateral_value:5.2f}) | "
-                    f"cmd vx={vx:4.2f} "
+                    f"cmd vx={vx:4.2f} | "
                     f"yaw={yaw_rate:5.2f}"
                 )
 
                 # ------------------------------------------------------
-                # New camera-centric RAVEN telemetry
+                # Print camera tracking state
                 # ------------------------------------------------------
 
                 print(
@@ -573,13 +848,33 @@ def main():
                     f"{target_vel_z:5.2f}) | "
                     f"dist={camera_distance:5.2f} | "
                     f"dist_err={camera_distance_error:+5.2f} | "
-                    f"azimuth={azimuth_deg:+6.1f} deg | "
-                    f"elevation={elevation_deg:+6.1f} deg"
+                    f"az={azimuth_deg:+6.1f} deg | "
+                    f"el={elevation_deg:+6.1f} deg"
                 )
+
+                # ------------------------------------------------------
+                # Print camera control command
+                # ------------------------------------------------------
+
+                print(
+                    "[CAMERA CMD] "
+                    f"dolly={camera_vx:+5.2f} | "
+                    f"truck={camera_vy:+5.2f} | "
+                    f"pedestal={camera_vz:+5.2f} | "
+                    f"pan={camera_pan_rate:+5.2f} rad/s | "
+                    f"tilt={camera_tilt_rate:+5.2f} rad/s"
+                )
+
+                print()
 
             step += 1
 
     env.close()
+
+
+# =============================================================================
+# Entry point
+# =============================================================================
 
 
 if __name__ == "__main__":

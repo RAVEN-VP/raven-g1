@@ -28,10 +28,10 @@ from . import mdp
 
 @configclass
 class RavenSceneCfg(MySceneCfg):
-    """RAVEN scene containing G1, target and camera/tripod proxy."""
+    """RAVEN G1 cinematography scene."""
 
     # ------------------------------------------------------------------
-    # Actor / target
+    # Moving actor / subject
     # ------------------------------------------------------------------
 
     target = RigidObjectCfg(
@@ -52,34 +52,90 @@ class RavenSceneCfg(MySceneCfg):
     )
 
     # ------------------------------------------------------------------
-    # Camera / tripod-head proxy
+    # Tripod base
     #
-    # This is deliberately simple for now.
-    #
-    # Its root transform represents the camera optical tracking frame:
-    #
-    # +X = forward
-    # +Y = lateral
-    # +Z = vertical
-    #
-    # We will replace this with the articulated tripod/camera system
-    # before training the final manipulation policy.
+    # 34 cm footprint. This is compact enough to sit in front of the
+    # 45 cm-wide G1 without being absurdly large compared with it.
     # ------------------------------------------------------------------
 
-    camera_rig = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/CameraRig",
+    tripod_base = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/TripodBase",
         spawn=sim_utils.CuboidCfg(
-            size=(0.30, 0.20, 0.15),
+            size=(0.34, 0.34, 0.06),
             rigid_props=sim_utils.RigidBodyPropertiesCfg(
                 kinematic_enabled=True,
                 disable_gravity=True,
             ),
             visual_material=sim_utils.PreviewSurfaceCfg(
-                diffuse_color=(0.15, 0.15, 0.18),
+                diffuse_color=(0.08, 0.08, 0.10),
             ),
         ),
         init_state=RigidObjectCfg.InitialStateCfg(
-            pos=(0.0, -1.0, 1.4),
+            pos=(0.38, 0.0, 0.03),
+        ),
+    )
+
+    # ------------------------------------------------------------------
+    # Tripod / pedestal column
+    #
+    # 82 cm column.
+    #
+    # Camera head is initially around 1.05 m, placing the controls and
+    # camera around the G1's torso/arm working height.
+    # ------------------------------------------------------------------
+
+    tripod_column = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/TripodColumn",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.05, 0.05, 0.82),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,
+                disable_gravity=True,
+            ),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.12, 0.12, 0.14),
+            ),
+        ),
+        init_state=RigidObjectCfg.InitialStateCfg(
+            pos=(0.38, 0.0, 0.44),
+        ),
+    )
+
+    # ------------------------------------------------------------------
+    # Camera head / optical tracking frame
+    #
+    # The root transform of this object is currently treated as the
+    # RAVEN camera tracking frame.
+    #
+    # Size:
+    #   24 cm long
+    #   16 cm wide
+    #   14 cm high
+    #
+    # Initial height:
+    #   1.05 m
+    #
+    # Initial horizontal offset from G1:
+    #   0.38 m forward
+    #
+    # This keeps it comfortably inside the conservative G1 manipulation
+    # envelope used by camera_control.py.
+    # ------------------------------------------------------------------
+
+    camera_rig = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/CameraRig",
+        spawn=sim_utils.CuboidCfg(
+            size=(0.24, 0.16, 0.14),
+            rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                kinematic_enabled=True,
+                disable_gravity=True,
+            ),
+            visual_material=sim_utils.PreviewSurfaceCfg(
+                diffuse_color=(0.20, 0.20, 0.23),
+            ),
+        ),
+        init_state=RigidObjectCfg.InitialStateCfg(
+            pos=(0.38, 0.0, 1.05),
             rot=(1.0, 0.0, 0.0, 0.0),
         ),
     )
@@ -92,13 +148,11 @@ class RavenSceneCfg(MySceneCfg):
 
 @configclass
 class RavenObservationsCfg(ObservationsCfg):
-    """Low-level G1 observations plus high-level camera-tracking observations."""
 
     @configclass
     class RavenCfg(ObsGroup):
-        """Observations used by the future RAVEN camera policy."""
 
-        # Full XYZ target position in camera coordinates.
+        # Target XYZ in camera frame.
         # Shape: 3
         target_position_camera = ObsTerm(
             func=mdp.target_position_camera,
@@ -108,7 +162,7 @@ class RavenObservationsCfg(ObservationsCfg):
             },
         )
 
-        # Full XYZ target velocity relative to the camera.
+        # Target velocity XYZ relative to camera.
         # Shape: 3
         target_relative_velocity_camera = ObsTerm(
             func=mdp.target_relative_velocity_camera,
@@ -118,7 +172,7 @@ class RavenObservationsCfg(ObservationsCfg):
             },
         )
 
-        # Full 3D camera-target distance.
+        # Full 3D shot distance.
         # Shape: 1
         target_distance_camera = ObsTerm(
             func=mdp.target_distance_camera,
@@ -128,7 +182,7 @@ class RavenObservationsCfg(ObservationsCfg):
             },
         )
 
-        # Difference from desired shot distance.
+        # Desired shot distance error.
         # Shape: 1
         target_distance_error_camera = ObsTerm(
             func=mdp.target_distance_error_camera,
@@ -139,7 +193,7 @@ class RavenObservationsCfg(ObservationsCfg):
             },
         )
 
-        # Horizontal target angle.
+        # Horizontal framing error.
         # Shape: 2
         target_azimuth_sin_cos = ObsTerm(
             func=mdp.target_azimuth_sin_cos,
@@ -149,7 +203,7 @@ class RavenObservationsCfg(ObservationsCfg):
             },
         )
 
-        # Vertical target angle.
+        # Vertical framing error.
         # Shape: 2
         target_elevation_sin_cos = ObsTerm(
             func=mdp.target_elevation_sin_cos,
@@ -173,7 +227,6 @@ class RavenObservationsCfg(ObservationsCfg):
 
 @configclass
 class RavenEventCfg(EventCfg):
-    """RAVEN environment events."""
 
     move_target = EventTerm(
         func=mdp.move_target_on_3d_path,
@@ -182,14 +235,11 @@ class RavenEventCfg(EventCfg):
         is_global_time=True,
         params={
             "asset_cfg": SceneEntityCfg("target"),
-
             "radius": 2.5,
             "angular_speed": 0.4,
-
             "base_height": 1.2,
             "vertical_amplitude": 0.5,
             "vertical_angular_speed": 0.6,
-
             "step_dt": 0.02,
         },
     )
@@ -202,7 +252,6 @@ class RavenEventCfg(EventCfg):
 
 @configclass
 class RavenG1EnvCfg(G1FlatEnvCfg):
-    """RAVEN G1 training environment."""
 
     scene: RavenSceneCfg = RavenSceneCfg(
         num_envs=256,
@@ -224,7 +273,6 @@ class RavenG1EnvCfg(G1FlatEnvCfg):
 
 @configclass
 class RavenG1EnvCfg_PLAY(G1FlatEnvCfg_PLAY):
-    """Single-environment RAVEN validation environment."""
 
     scene: RavenSceneCfg = RavenSceneCfg(
         num_envs=1,

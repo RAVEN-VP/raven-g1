@@ -431,6 +431,10 @@ def main():
 
             if step % 50 == 0:
 
+                # ------------------------------------------------------
+                # Existing G1-follow telemetry
+                # ------------------------------------------------------
+
                 distance_value = (
                     distance[0].item()
                 )
@@ -455,6 +459,93 @@ def main():
                     command[0, 2].item()
                 )
 
+                # ------------------------------------------------------
+                # Read the new CAMERA-CENTRIC RAVEN observation group
+                # ------------------------------------------------------
+
+                raven_obs = (
+                    base_env.observation_manager.compute_group(
+                        "raven"
+                    )
+                )
+
+                raven_values = raven_obs[0]
+
+                # ------------------------------------------------------
+                # Camera-relative target position
+                #
+                # [0] X = forward/back relative to camera
+                # [1] Y = left/right relative to camera
+                # [2] Z = up/down relative to camera
+                # ------------------------------------------------------
+
+                camera_target_x = raven_values[0].item()
+                camera_target_y = raven_values[1].item()
+                camera_target_z = raven_values[2].item()
+
+                # ------------------------------------------------------
+                # Target velocity relative to camera
+                #
+                # [3] Vx
+                # [4] Vy
+                # [5] Vz
+                # ------------------------------------------------------
+
+                target_vel_x = raven_values[3].item()
+                target_vel_y = raven_values[4].item()
+                target_vel_z = raven_values[5].item()
+
+                # ------------------------------------------------------
+                # 3D distance + desired shot-distance error
+                #
+                # [6] actual 3D camera-to-target distance
+                # [7] distance error from desired distance
+                # ------------------------------------------------------
+
+                camera_distance = raven_values[6].item()
+                camera_distance_error = raven_values[7].item()
+
+                # ------------------------------------------------------
+                # Horizontal framing / azimuth
+                #
+                # Stored as sin/cos to avoid angle wrap discontinuities.
+                #
+                # [8] sin(azimuth)
+                # [9] cos(azimuth)
+                # ------------------------------------------------------
+
+                azimuth_sin = raven_values[8].item()
+                azimuth_cos = raven_values[9].item()
+
+                # ------------------------------------------------------
+                # Vertical framing / elevation
+                #
+                # [10] sin(elevation)
+                # [11] cos(elevation)
+                # ------------------------------------------------------
+
+                elevation_sin = raven_values[10].item()
+                elevation_cos = raven_values[11].item()
+
+                # Convert sin/cos back into degrees for readable telemetry.
+                azimuth_deg = math.degrees(
+                    math.atan2(
+                        azimuth_sin,
+                        azimuth_cos,
+                    )
+                )
+
+                elevation_deg = math.degrees(
+                    math.atan2(
+                        elevation_sin,
+                        elevation_cos,
+                    )
+                )
+
+                # ------------------------------------------------------
+                # Existing G1 locomotion telemetry
+                # ------------------------------------------------------
+
                 print(
                     "[RAVEN] "
                     f"distance={distance_value:5.2f} m | "
@@ -464,6 +555,26 @@ def main():
                     f"{lateral_value:5.2f}) | "
                     f"cmd vx={vx:4.2f} "
                     f"yaw={yaw_rate:5.2f}"
+                )
+
+                # ------------------------------------------------------
+                # New camera-centric RAVEN telemetry
+                # ------------------------------------------------------
+
+                print(
+                    "[CAMERA OBS] "
+                    f"target_xyz=("
+                    f"{camera_target_x:5.2f}, "
+                    f"{camera_target_y:5.2f}, "
+                    f"{camera_target_z:5.2f}) | "
+                    f"rel_vel=("
+                    f"{target_vel_x:5.2f}, "
+                    f"{target_vel_y:5.2f}, "
+                    f"{target_vel_z:5.2f}) | "
+                    f"dist={camera_distance:5.2f} | "
+                    f"dist_err={camera_distance_error:+5.2f} | "
+                    f"azimuth={azimuth_deg:+6.1f} deg | "
+                    f"elevation={elevation_deg:+6.1f} deg"
                 )
 
             step += 1

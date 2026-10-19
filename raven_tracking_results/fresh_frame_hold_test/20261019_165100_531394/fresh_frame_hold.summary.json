@@ -1,0 +1,72 @@
+{
+  "experiment": "RGB-D identical-measurement bearing-hold ablation",
+  "purpose": "Test whether repeated image/updated torso-pose mismatch contributes to oscillation",
+  "controller_source_unchanged": true,
+  "calibrated_camera_unchanged": true,
+  "grasp_and_ik_unchanged": true,
+  "ground_truth_for_control": false,
+  "caveats": [
+    "An identical centroid/depth/pixel-count/bbox is not a true camera frame ID.",
+    "This experimental hold introduces its own latency and may make performance worse.",
+    "An improvement would support a feedback/timing contribution, not prove the sole root cause."
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "actor_y_evaluation_only_m": 0.45,
+      "evaluated_samples": 40,
+      "held_samples": 0,
+      "held_fraction": 0.0
+    },
+    {
+      "stage": 2,
+      "actor_y_evaluation_only_m": 0.3,
+      "evaluated_samples": 40,
+      "held_samples": 0,
+      "held_fraction": 0.0
+    },
+    {
+      "stage": 3,
+      "actor_y_evaluation_only_m": 0.15,
+      "evaluated_samples": 40,
+      "held_samples": 0,
+      "held_fraction": 0.0
+    },
+    {
+      "stage": 4,
+      "actor_y_evaluation_only_m": 0.0,
+      "evaluated_samples": 40,
+      "held_samples": 0,
+      "held_fraction": 0.0
+    },
+    {
+      "stage": 5,
+      "actor_y_evaluation_only_m": -0.15,
+      "evaluated_samples": 40,
+      "held_samples": 0,
+      "held_fraction": 0.0
+    },
+    {
+      "stage": 6,
+      "actor_y_evaluation_only_m": -0.3,
+      "evaluated_samples": 40,
+      "held_samples": 17,
+      "held_fraction": 0.425
+    },
+    {
+      "stage": 7,
+      "actor_y_evaluation_only_m": -0.45,
+      "evaluated_samples": 40,
+      "held_samples": 20,
+      "held_fraction": 0.5
+    },
+    {
+      "stage": 8,
+      "actor_y_evaluation_only_m": 0.0,
+      "evaluated_samples": 40,
+      "held_samples": 20,
+      "held_fraction": 0.5
+    }
+  ],
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\fresh_frame_hold_test\\20261019_165100_531394\\fresh_frame_hold_telemetry.csv"
+}

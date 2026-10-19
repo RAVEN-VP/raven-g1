@@ -1,0 +1,240 @@
+{
+  "experiment": "RAVEN stationary actor sweep with independent tripod RGB",
+  "completed_all_positions": true,
+  "tracking_controller_unchanged": true,
+  "assisted_grasp": true,
+  "actor_ground_truth_used_for_control": false,
+  "mount_position_local_m": [
+    0.38,
+    0.0,
+    0.03
+  ],
+  "mount_quaternion_wxyz": [
+    0.9993191285690909,
+    0.000644302332549033,
+    -0.021456229334608615,
+    0.030008238421435435
+  ],
+  "per_position": [
+    {
+      "stage": 1,
+      "actor_y_m": -0.45,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.143634,
+        "mae_deg": 0.143634,
+        "rmse_deg": 0.14517181942443239,
+        "p95_abs_deg": 0.181007,
+        "max_abs_deg": 0.18196
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": -0.259718,
+        "mae_deg": 0.259718,
+        "rmse_deg": 0.2911993960416127,
+        "p95_abs_deg": 0.46070599999999995,
+        "max_abs_deg": 0.5139
+      },
+      "mean_abs_pan_velocity_deg_s": 0.076966,
+      "elbow_range_deg": [
+        99.87577,
+        104.98627
+      ],
+      "max_grasp_relative_drift_mm": 0.15080000000000002
+    },
+    {
+      "stage": 2,
+      "actor_y_m": -0.3,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.12726775,
+        "mae_deg": 0.12726775,
+        "rmse_deg": 0.1297112819206564,
+        "p95_abs_deg": 0.157459,
+        "max_abs_deg": 0.15965
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": -0.09756225,
+        "mae_deg": 0.09756225,
+        "rmse_deg": 0.1022991051891462,
+        "p95_abs_deg": 0.14474199999999995,
+        "max_abs_deg": 0.15568
+      },
+      "mean_abs_pan_velocity_deg_s": 0.12130175,
+      "elbow_range_deg": [
+        105.11473,
+        109.62126
+      ],
+      "max_grasp_relative_drift_mm": 0.09380000000000001
+    },
+    {
+      "stage": 3,
+      "actor_y_m": -0.15,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.146103,
+        "mae_deg": 0.146103,
+        "rmse_deg": 0.1476914054710023,
+        "p95_abs_deg": 0.178409,
+        "max_abs_deg": 0.18064
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": 0.029451249999999998,
+        "mae_deg": 0.04387375,
+        "rmse_deg": 0.045799199856547713,
+        "p95_abs_deg": 0.0616885,
+        "max_abs_deg": 0.06212
+      },
+      "mean_abs_pan_velocity_deg_s": 0.1283915,
+      "elbow_range_deg": [
+        114.8222,
+        120.00447
+      ],
+      "max_grasp_relative_drift_mm": 0.08220000000000001
+    },
+    {
+      "stage": 4,
+      "actor_y_m": 0.0,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.173869,
+        "mae_deg": 0.173869,
+        "rmse_deg": 0.1742833630327347,
+        "p95_abs_deg": 0.19240649999999995,
+        "max_abs_deg": 0.20059
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": 0.13592875,
+        "mae_deg": 0.13592875,
+        "rmse_deg": 0.13664871343155777,
+        "p95_abs_deg": 0.158185,
+        "max_abs_deg": 0.16383
+      },
+      "mean_abs_pan_velocity_deg_s": 0.116032,
+      "elbow_range_deg": [
+        120.00361,
+        120.00666
+      ],
+      "max_grasp_relative_drift_mm": 0.0408
+    },
+    {
+      "stage": 5,
+      "actor_y_m": 0.15,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.16737825,
+        "mae_deg": 0.16737825,
+        "rmse_deg": 0.1678852271121554,
+        "p95_abs_deg": 0.1887775,
+        "max_abs_deg": 0.1914
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": 0.22840925,
+        "mae_deg": 0.22840925,
+        "rmse_deg": 0.25034680786361146,
+        "p95_abs_deg": 0.3446145,
+        "max_abs_deg": 0.34549
+      },
+      "mean_abs_pan_velocity_deg_s": 0.10044025,
+      "elbow_range_deg": [
+        120.0032,
+        120.01149
+      ],
+      "max_grasp_relative_drift_mm": 0.06820000000000001
+    },
+    {
+      "stage": 6,
+      "actor_y_m": 0.3,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.2313985,
+        "mae_deg": 0.2313985,
+        "rmse_deg": 0.23243455725214354,
+        "p95_abs_deg": 0.25651549999999995,
+        "max_abs_deg": 0.26327
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": 1.1370385,
+        "mae_deg": 1.1370385,
+        "rmse_deg": 1.137253945288826,
+        "p95_abs_deg": 1.1557215,
+        "max_abs_deg": 1.15708
+      },
+      "mean_abs_pan_velocity_deg_s": 0.16211325,
+      "elbow_range_deg": [
+        120.01849,
+        120.02053
+      ],
+      "max_grasp_relative_drift_mm": 0.1951
+    },
+    {
+      "stage": 7,
+      "actor_y_m": 0.45,
+      "evaluation_samples": 40,
+      "tripod_detected_samples": 40,
+      "detection_rate": 1.0,
+      "horizontal": {
+        "n": 40,
+        "signed_mean_deg": 0.3039985,
+        "mae_deg": 0.3039985,
+        "rmse_deg": 0.31171677587194435,
+        "p95_abs_deg": 0.3866165,
+        "max_abs_deg": 0.38845
+      },
+      "vertical": {
+        "n": 40,
+        "signed_mean_deg": 1.3404935,
+        "mae_deg": 1.3404935,
+        "rmse_deg": 1.3405287515958022,
+        "p95_abs_deg": 1.3513315000000001,
+        "max_abs_deg": 1.35155
+      },
+      "mean_abs_pan_velocity_deg_s": 0.44113875,
+      "elbow_range_deg": [
+        120.01426,
+        120.01844
+      ],
+      "max_grasp_relative_drift_mm": 0.2438
+    }
+  ],
+  "aggregate_horizontal": {
+    "n": 280,
+    "signed_mean_deg": 0.184807,
+    "mae_deg": 0.184807,
+    "rmse_deg": 0.19620176820959445,
+    "p95_abs_deg": 0.33803,
+    "max_abs_deg": 0.38845
+  },
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\static_framing_sweep\\20261019_143929\\raven_static_framing.csv",
+  "notes": [
+    "These are stationary-position measurements, not latency estimates.",
+    "Error is image-space target-centroid angle (positive toward image-right).",
+    "A 2-second settling interval is excluded after every move.",
+    "The baseline tracker CSV actor_y_ground_truth_m column reflects its unused sinusoidal plan; use the new sweep CSV for actual actor positions.",
+    "Check the centre-position result against the previous ~0.144 deg static bias before comparing runs.",
+    "The original tracker is imported but not rewritten."
+  ]
+}

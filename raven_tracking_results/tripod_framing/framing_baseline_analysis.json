@@ -1,0 +1,27 @@
+{
+  "milestone": "RAVEN independent-tripod-camera baseline decomposition",
+  "purpose": "Static alignment versus dynamic tracking error",
+  "input": "raven_tracking_results\\tripod_framing\\tripod_framing.csv",
+  "samples_detected_and_finite": 351,
+  "stationary_window_s": 1.0,
+  "stationary_samples": 11,
+  "stationary_pan_range_deg": 0.0387,
+  "stationary_g1_bearing_range_deg": 0.0547,
+  "stationary_horizontal_alignment_deg": -3.44271,
+  "stationary_vertical_alignment_deg": -2.45555,
+  "actual_horizontal_mean_signed_error_deg": -3.43195,
+  "actual_horizontal_mae_deg": 3.43195,
+  "actual_horizontal_p95_abs_deg": 4.5686,
+  "actual_vertical_mae_deg": 2.28339,
+  "bias_subtracted_horizontal_mae_deg_diagnostic_only": 0.68916,
+  "bias_subtracted_horizontal_p95_abs_deg_diagnostic_only": 1.13879,
+  "bias_subtracted_vertical_mae_deg_diagnostic_only": 0.36152,
+  "horizontal_error_vs_g1_minus_pan": {
+    "slope": -1.21921,
+    "intercept_deg": -3.27786,
+    "r_squared_on_same_dataset": 0.97268,
+    "model_residual_mae_deg_same_dataset": 0.07716
+  },
+  "important_limitation": "The static offset is an OBSERVED framing bias, not yet an identified physical cause. Bias subtraction and model fitting are descriptive offline diagnostics; they DO NOT reduce the error visible to the real tripod camera. Validate physical alignment and predictive controls on a new independently recorded run.",
+  "decomposed_csv": "raven_tracking_results\\tripod_framing\\framing_baseline_decomposition.csv"
+}

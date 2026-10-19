@@ -1,0 +1,65 @@
+{
+  "milestone": "tripod RGB cinematic framing",
+  "status": "MEASURED",
+  "camera_parent": "Tripod/camera_link",
+  "controller": "unchanged raven_g1_actor_tracking.py",
+  "framing_source": "tripod camera RGB actor segmentation",
+  "assisted_grasp": true,
+  "sample_count": 351,
+  "detected_count": 351,
+  "detection_rate": 1.0,
+  "horizontal_mean_abs_error_deg": 0.6949834314162444,
+  "horizontal_p95_abs_error_deg": 1.1829808480693331,
+  "horizontal_max_abs_error_deg": 1.2442651999688337,
+  "vertical_mean_abs_error_deg": 0.4954084245345471,
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\camera_yaw_p3p44_pitch_p2p46\\tripod_framing\\tripod_framing.csv",
+  "images_dir": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\camera_yaw_p3p44_pitch_p2p46\\tripod_framing",
+  "camera_mount_offset": [
+    0.38,
+    0.0,
+    0.03
+  ],
+  "camera_reversed": false,
+  "initial_actor_forward_alignment": 0.9979079961776733,
+  "initial_raw_rgb_mean": [
+    206.05,
+    175.29,
+    205.28
+  ],
+  "mount_calibration": {
+    "applied_yaw_left_deg": 3.44,
+    "applied_pitch_up_deg": 2.46,
+    "mount_position_local_m": [
+      0.38,
+      0.0,
+      0.03
+    ],
+    "mount_quaternion_wxyz": [
+      0.9993191285690909,
+      0.000644302332549033,
+      -0.021456229334608615,
+      0.030008238421435435
+    ],
+    "method": "Physical rotation of tripod RGB sensor relative to camera_link",
+    "actor_ground_truth_used_for_control": false
+  },
+  "stationary_window": {
+    "window_s": [
+      0.0,
+      1.0
+    ],
+    "samples": 11,
+    "mean_signed_horizontal_error_deg": 0.14373636363636363,
+    "mean_signed_vertical_error_deg": -0.1577818181818182,
+    "pan_range_deg": 0.06
+  },
+  "prior_run_comparison": {
+    "original_summary": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\tripod_framing\\tripod_framing.summary.json",
+    "original_horizontal_mae_deg": 3.4319529894512537,
+    "new_horizontal_mae_deg": 0.6949834314162444,
+    "original_horizontal_p95_deg": 4.56861967673545,
+    "new_horizontal_p95_deg": 1.1829808480693331,
+    "original_detection_rate": 1.0,
+    "new_detection_rate": 1.0
+  }
+}

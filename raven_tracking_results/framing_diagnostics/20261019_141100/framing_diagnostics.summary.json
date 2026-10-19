@@ -1,0 +1,59 @@
+{
+  "source_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\camera_yaw_p3p44_pitch_p2p46\\tripod_framing\\tripod_framing.csv",
+  "columns": {
+    "time": "tracking_time_s",
+    "horizontal_error": "horizontal_error_deg",
+    "vertical_error": "vertical_error_deg",
+    "measured_pan": "actual_pan_deg",
+    "target": "g1_target_bearing_deg"
+  },
+  "stationary_interval_s": [
+    0.0,
+    1.0
+  ],
+  "full_horizontal": {
+    "n": 351,
+    "signed_mean_deg": 0.12459088319088307,
+    "mae_deg": 0.6949829059829062,
+    "rmse_deg": 0.7832728648055802,
+    "p95_abs_deg": 1.1828500000000002,
+    "max_abs_deg": 1.2443
+  },
+  "initial_stationary_horizontal": {
+    "n": 11,
+    "signed_mean_deg": 0.1437363636363636,
+    "mae_deg": 0.14373636363636363,
+    "rmse_deg": 0.14516706050115313,
+    "p95_abs_deg": 0.1679,
+    "max_abs_deg": 0.1679
+  },
+  "later_horizontal": {
+    "n": 340,
+    "signed_mean_deg": 0.1239714705882352,
+    "mae_deg": 0.7128173529411768,
+    "rmse_deg": 0.7954141381732427,
+    "p95_abs_deg": 1.18304,
+    "max_abs_deg": 1.2443
+  },
+  "later_horizontal_after_initial_bias_subtraction": {
+    "n": 340,
+    "signed_mean_deg": -0.0197648930481283,
+    "mae_deg": 0.7057198663101607,
+    "rmse_deg": 0.7859423494654529,
+    "p95_abs_deg": 1.1509763636363637,
+    "max_abs_deg": 1.2346363636363635
+  },
+  "full_vertical": {
+    "n": 351,
+    "signed_mean_deg": 0.0912957264957265,
+    "mae_deg": 0.495406267806268,
+    "rmse_deg": 0.6228807767095581,
+    "p95_abs_deg": 1.24745,
+    "max_abs_deg": 1.2898
+  },
+  "cautions": [
+    "Later samples are not automatically classified as moving actor samples.",
+    "Removing the initial stationary signed mean does not calibrate position-dependent errors.",
+    "Framing-only measurements cannot establish end-to-end perception-to-actuation latency."
+  ]
+}

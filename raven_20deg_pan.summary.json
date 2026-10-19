@@ -1,0 +1,97 @@
+{
+  "experiment": "RAVEN actuator-driven assisted tripod pan",
+  "status": "PASS",
+  "total_pan_sweep_deg": 20.0,
+  "requested_cycles": 3,
+  "completed_cycles": 3,
+  "grasp": "temporary USD fixed joint; NOT validated finger-only",
+  "pan_motor_during_sweep": "no position target; zero stiffness",
+  "target_results": [
+    {
+      "cycle": 1,
+      "target_deg": -10.0,
+      "actual_deg": -10.010519907962033,
+      "outcome": "reached",
+      "error_deg": 0.01051990796203306
+    },
+    {
+      "cycle": 1,
+      "target_deg": 0.0,
+      "actual_deg": -0.03917369621096188,
+      "outcome": "reached",
+      "error_deg": 0.03917369621096188
+    },
+    {
+      "cycle": 1,
+      "target_deg": 10.0,
+      "actual_deg": 9.950176894192262,
+      "outcome": "reached",
+      "error_deg": 0.04982310580773763
+    },
+    {
+      "cycle": 1,
+      "target_deg": 0.0,
+      "actual_deg": -0.022588929689113108,
+      "outcome": "reached",
+      "error_deg": 0.022588929689113108
+    },
+    {
+      "cycle": 2,
+      "target_deg": -10.0,
+      "actual_deg": -10.008831143689747,
+      "outcome": "reached",
+      "error_deg": 0.008831143689747023
+    },
+    {
+      "cycle": 2,
+      "target_deg": 0.0,
+      "actual_deg": -0.04072692391690509,
+      "outcome": "reached",
+      "error_deg": 0.04072692391690509
+    },
+    {
+      "cycle": 2,
+      "target_deg": 10.0,
+      "actual_deg": 9.953539908584847,
+      "outcome": "reached",
+      "error_deg": 0.046460091415152505
+    },
+    {
+      "cycle": 2,
+      "target_deg": 0.0,
+      "actual_deg": -0.024039491114094567,
+      "outcome": "reached",
+      "error_deg": 0.024039491114094567
+    },
+    {
+      "cycle": 3,
+      "target_deg": -10.0,
+      "actual_deg": -10.010830681569269,
+      "outcome": "reached",
+      "error_deg": 0.010830681569268918
+    },
+    {
+      "cycle": 3,
+      "target_deg": 0.0,
+      "actual_deg": -0.0396091207705502,
+      "outcome": "reached",
+      "error_deg": 0.0396091207705502
+    },
+    {
+      "cycle": 3,
+      "target_deg": 10.0,
+      "actual_deg": 9.954375752984529,
+      "outcome": "reached",
+      "error_deg": 0.0456242470154713
+    },
+    {
+      "cycle": 3,
+      "target_deg": 0.0,
+      "actual_deg": -0.023897337801993674,
+      "outcome": "reached",
+      "error_deg": 0.023897337801993674
+    }
+  ],
+  "max_assisted_error_m": 0.000692,
+  "csv_file": "C:\\RAVEN-Isaac\\raven-g1\\raven_20deg_pan.csv"
+}

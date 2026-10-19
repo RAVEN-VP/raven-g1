@@ -1,0 +1,4 @@
+time_s,target_deg,requested_deg,actual_pan_deg,velocity_deg_s,waist_yaw_deg,waist_roll_deg,waist_pitch_deg,elbow_deg,elbow_lateral_m,assist_error_m,hand_orientation_error_deg,joint_saturation_time_s,stage_index
+22.0000,-10.00,0.000,0.000,0.000,-15.208,9.911,10.037,116.344,0.2773,0.00075,1.27,0.008,0
+22.1000,-10.00,-0.037,-0.048,-0.276,-15.946,9.920,10.030,116.179,0.2786,0.00074,1.34,0.108,0
+22.2000,-10.00,-0.146,-0.117,-0.539,-16.660,9.917,10.032,115.996,0.2799,0.00074,1.38,0.208,0

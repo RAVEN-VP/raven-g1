@@ -1,0 +1,29 @@
+{
+  "milestone": "tripod RGB cinematic framing",
+  "status": "MEASURED",
+  "camera_parent": "Tripod/camera_link",
+  "controller": "unchanged raven_g1_actor_tracking.py",
+  "framing_source": "tripod camera RGB actor segmentation",
+  "assisted_grasp": true,
+  "sample_count": 351,
+  "detected_count": 351,
+  "detection_rate": 1.0,
+  "horizontal_mean_abs_error_deg": 3.4319529894512537,
+  "horizontal_p95_abs_error_deg": 4.56861967673545,
+  "horizontal_max_abs_error_deg": 4.7253205198102055,
+  "vertical_mean_abs_error_deg": 2.2833915751575273,
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\tripod_framing\\tripod_framing.csv",
+  "images_dir": "C:\\RAVEN-Isaac\\raven-g1\\raven_tracking_results\\tripod_framing",
+  "camera_mount_offset": [
+    0.38,
+    0.0,
+    0.03
+  ],
+  "camera_reversed": false,
+  "initial_actor_forward_alignment": 0.9979079961776733,
+  "initial_raw_rgb_mean": [
+    198.83,
+    168.51,
+    198.28
+  ]
+}

@@ -37,6 +37,10 @@ EXTRA.add_argument("--policy", type=Path, required=True)
 EXTRA.add_argument("--online-out", type=Path, default=None)
 EXTRA.add_argument("--blend", type=float, default=0.35)
 EXTRA.add_argument("--seed", type=int, default=42)
+EXTRA.add_argument("--motion-profile", choices=("sine", "triangle", "dwell", "multisine", "chirp"),
+                   default="sine", help="Actor motion curriculum, applied without changing the validated tracker")
+EXTRA.add_argument("--bearing-source", choices=("legacy", "pixel"), default="legacy",
+                   help="legacy=original world bearing; pixel=experimental optical pixel bearing")
 EXTRA.add_argument("--explore-noise-rad", type=float, default=0.0003)
 explore_args, tracker_argv = EXTRA.parse_known_args(sys.argv[1:])
 if not 0.0 < explore_args.blend <= 0.5:
@@ -85,6 +89,9 @@ for param in actor.parameters():
     param.requires_grad_(False)
 
 intervention = {"enabled": True, "applied": 0, "fallback": 0,
+                "fallback_reasons": {"nonfinite_reference": 0, "nonfinite_action": 0,
+                                     "joint_limit": 0, "joint_step_limit": 0,
+                                     "exception": 0},
                 "proposed": 0, "last_actor_used": False,
                 "last_reference_abs_rad": None}
 
@@ -111,6 +118,7 @@ def blend_actor_action(command, robot, tripod, desired_pan, pan_zero,
         ref = float(pan_zero[0]) + math.radians(float(desired_pan))
         if not math.isfinite(ref):
             intervention["fallback"] += 1
+            intervention["fallback_reasons"]["nonfinite_reference"] += 1
             return command
         intervention["last_reference_abs_rad"] = ref
         actor.to(state.device)
@@ -126,12 +134,17 @@ def blend_actor_action(command, robot, tripod, desired_pan, pan_zero,
             bounds = robot.data.joint_pos_limits[0, ids]
             step_bounds = torch.full_like(held, base.MAX_ARM_STEP)
             step_bounds[:, 0] = base.MAX_WAIST_STEP
-            feasible = (torch.isfinite(proposal).all()
-                        and bool((proposal >= bounds[:, 0] + 1e-5).all())
-                        and bool((proposal <= bounds[:, 1] - 1e-5).all())
-                        and bool(((proposal - q).abs() <= step_bounds + 1e-6).all()))
-            if not feasible:
+            reason = None
+            if not bool(torch.isfinite(proposal).all()):
+                reason = "nonfinite_action"
+            elif not (bool((proposal >= bounds[:, 0] + 1e-5).all())
+                      and bool((proposal <= bounds[:, 1] - 1e-5).all())):
+                reason = "joint_limit"
+            elif not bool(((proposal - q).abs() <= step_bounds + 1e-6).all()):
+                reason = "joint_step_limit"
+            if reason:
                 intervention["fallback"] += 1
+                intervention["fallback_reasons"][reason] += 1
                 return command
             result = command.clone()
             result[:, ids] = proposal
@@ -140,8 +153,39 @@ def blend_actor_action(command, robot, tripod, desired_pan, pan_zero,
         return result
     except Exception as exc:
         intervention["fallback"] += 1
-        print(f"[ONLINE COLLECTOR] Actor fallback: {type(exc).__name__}: {exc}")
+        intervention["fallback_reasons"]["exception"] += 1
+        if intervention["fallback_reasons"]["exception"] <= 5:
+            print(f"[ONLINE COLLECTOR] Actor fallback: {type(exc).__name__}: {exc}")
         return command
+
+
+def curriculum_y(t: float, motion_start: float | None) -> float:
+    """Deterministic bounded lateral actor motion; zero before perception lock."""
+    if motion_start is None or t < motion_start:
+        return 0.0
+    elapsed = max(0.0, t - motion_start)
+    amplitude = float(base.args.actor_amplitude_m)
+    period = float(base.args.actor_period_s)
+    cycles = elapsed / period
+    theta = 2.0 * math.pi * cycles
+    profile = explore_args.motion_profile
+    if profile == "sine":
+        value = math.sin(theta)
+    elif profile == "triangle":
+        # Constant-speed crossing with sharp direction reversals.
+        value = (2.0 / math.pi) * math.asin(math.sin(theta))
+    elif profile == "dwell":
+        # Longer stays at each side with smoothly bounded transitions.
+        value = math.tanh(2.2 * math.sin(theta)) / math.tanh(2.2)
+    elif profile == "multisine":
+        # Mixed frequencies, still within the original displacement bounds.
+        value = 0.70 * math.sin(theta) + 0.30 * math.sin(2.3 * theta)
+    elif profile == "chirp":
+        # Increasing reversal frequency, without discontinuous teleportation.
+        value = math.sin(2.0 * math.pi * (cycles + 0.06 * cycles * cycles))
+    else:
+        raise RuntimeError(f"Unrecognised motion profile: {profile}")
+    return max(-amplitude, min(amplitude, amplitude * value))
 
 
 # Inject a single call in the ORIGINAL tracker loop without modifying its file.
@@ -156,6 +200,19 @@ finds = [node for node in ast.walk(run_ast)
          and ast.unparse(node) == "robot.set_joint_position_target(command)"]
 if len(finds) != 1:
     raise RuntimeError("Validated joint command injection site not found")
+# Replace only the original sinusoidal actor_Y expression in an in-memory AST.
+# Nothing changes on disk in raven_g1_actor_tracking.py.
+motion_assignments = [node for node in ast.walk(run_ast)
+                      if isinstance(node, ast.Assign)
+                      and any(isinstance(target, ast.Name) and target.id == "actor_y"
+                              for target in node.targets)
+                      and "args.actor_amplitude_m" in ast.unparse(node.value)
+                      and "math.sin" in ast.unparse(node.value)]
+if len(motion_assignments) != 1:
+    raise RuntimeError("Validated actor trajectory injection site not found")
+motion_assignments[0].value = ast.parse(
+    "curriculum_y(t, actor_motion_start_time)", mode="eval").body
+base.curriculum_y = curriculum_y
 finds[0].value.args[0] = ast.parse(
     "blend_actor_action(command, robot, tripod, desired_pan, pan_zero, phase, grip_attached)",
     mode="eval"
@@ -170,6 +227,7 @@ observation = {
     "detected": False, "bearing_deg": None, "u_px": None,
     "v_px": None, "median_depth_m": None, "pixels": None,
     "status": "not sampled", "read_after_physics_step": None,
+    "legacy_bearing_deg": None, "pixel_bearing_deg": None,
 }
 read_count = 0
 physics_steps = 0
@@ -193,11 +251,25 @@ def read_camera(g1_cam, tripod, robot, torso_body):
     """Observe the original RGB-D detector's result; never change its output."""
     global read_count
     result = original_detector(g1_cam, tripod, robot, torso_body)
-    detection, _rgb, status = result
+    detection, rgb, status = result
+    legacy_bearing = float(detection["bearing_deg"]) if detection else None
+    pixel_bearing = None
+    if detection:
+        intrinsics = g1_cam.data.intrinsic_matrices[0]
+        fx = float(intrinsics[0, 0])
+        cx = float(intrinsics[0, 2])
+        if math.isfinite(fx) and fx > 1.0 and math.isfinite(cx):
+            pixel_bearing = math.degrees(math.atan2(cx - float(detection["u"]), fx))
+            if explore_args.bearing_source == "pixel":
+                detection = dict(detection)
+                detection["bearing_deg"] = pixel_bearing
+                result = (detection, rgb, status)
     read_count += 1
     observation.update({
         "detected": detection is not None,
         "bearing_deg": float(detection["bearing_deg"]) if detection else None,
+        "legacy_bearing_deg": legacy_bearing,
+        "pixel_bearing_deg": pixel_bearing,
         "u_px": float(detection["u"]) if detection else None,
         "v_px": float(detection["v"]) if detection else None,
         "median_depth_m": float(detection["depth_m"]) if detection else None,
@@ -309,6 +381,8 @@ def wrap_run(sim, scene, actor_root):
             "tripod_root_pose_w_xyz_quat_wxyz": get_floats(tripod.data.root_pose_w[0]),
             "rgbd_detection": observation["detected"],
             "rgbd_actor_bearing_deg": observation["bearing_deg"],
+            "rgbd_original_bearing_deg": observation["legacy_bearing_deg"],
+            "rgbd_pixel_bearing_deg": observation["pixel_bearing_deg"],
             "rgbd_u_px": observation["u_px"],
             "rgbd_v_px": observation["v_px"],
             "rgbd_median_depth_m": observation["median_depth_m"],
@@ -370,12 +444,18 @@ def wrap_run(sim, scene, actor_root):
                 "assisted_grasp": True,
                 "original_tracker_sha256": hashlib.sha256(TRACKER.read_bytes()).hexdigest(),
                 "exploration_policy": str(explore_args.policy.resolve()),
+                "motion_profile": explore_args.motion_profile,
+                "bearing_source": explore_args.bearing_source,
+                "motion_amplitude_m": float(base.args.actor_amplitude_m),
+                "motion_period_s": float(base.args.actor_period_s),
+                "motion_seed": explore_args.seed,
                 "exploration_blend": explore_args.blend,
                 "exploration_noise_rad": explore_args.explore_noise_rad,
                 "training_usable": intervention["applied"] > 0,
                 "exploration_disabled_on_tilt": not intervention["enabled"],
                 "policy_steps_applied": intervention["applied"],
                 "policy_fallbacks": intervention["fallback"],
+                "policy_fallback_reasons": dict(intervention["fallback_reasons"]),
                 "transition_jsonl": str(data_path),
                 "original_10hz_csv": str(OUT / "raven_actor_tracking.csv"),
             }

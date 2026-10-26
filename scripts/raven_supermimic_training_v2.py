@@ -21,6 +21,7 @@ import math
 import random
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -39,12 +40,85 @@ from raven_supermimic_actor_critic_v1 import (
 from raven_supermimic_actor_critic_v1_1 import (
     imagined_rollout, evaluate, eligible_and_score,
 )
+from raven_curriculum_diagnostics import analyse as analyse_tracking_coverage
 
 ROOT = Path(__file__).resolve().parent.parent
 HERE = ROOT / 'scripts'
 DEFAULT_ACTOR = (ROOT / 'raven_training_results' / 'policy_v2_actor_critic'
                  / 'train_v1_1' / 'actor_critic_v1_1_best.pt')
 DEFAULT_OUTPUT = ROOT / 'raven_training_results' / 'supermimic_online_v2'
+
+
+def validated_capture(capture_dir: Path) -> tuple[Path, dict]:
+    """Validate the finished physical replay before using it for learning."""
+    data = capture_dir / 'raven_g1_state_action_120hz.jsonl'
+    summary = capture_dir / 'raven_g1_state_action.summary.json'
+    if not data.is_file() or not summary.is_file():
+        raise RuntimeError(f'Incomplete simulator capture in {capture_dir}')
+    metadata = json.loads(summary.read_text(encoding='utf-8'))
+    if (metadata.get('status') != 'RECORDED'
+            or metadata.get('training_usable') is not True
+            or int(metadata.get('samples', 0)) < 120
+            or int(metadata.get('policy_steps_applied', 0)) < 1
+            or data.stat().st_size == 0):
+        raise RuntimeError(f'Capture exists but is not training-usable: {summary}')
+    return data, metadata
+
+
+def collect_episode(command: list[str], capture_dir: Path, grace_seconds: float):
+    """Wait for Kit; allow a bounded shutdown grace after capture is saved.
+
+    Some Kit/PhysX builds hang while tearing down extensions after output has
+    already been flushed. Once both summaries indicate completion, terminate
+    only a subprocess that failed to exit within the grace period.
+    """
+    print('[COLLECTOR] Launching Isaac Sim subprocess', flush=True)
+    process = subprocess.Popen(command, cwd=ROOT)
+    recorded_at = None
+    stopped_after_capture = False
+    try:
+        while True:
+            code = process.poll()
+            if code is not None:
+                if code != 0:
+                    raise RuntimeError(f'Isaac Sim collector exited with code {code}')
+                break
+            if recorded_at is None:
+                summary = capture_dir / 'raven_g1_state_action.summary.json'
+                tracker_summary = capture_dir / 'raven_actor_tracking.summary.json'
+                try:
+                    if summary.is_file() and tracker_summary.is_file():
+                        a = json.loads(summary.read_text(encoding='utf-8'))
+                        b = json.loads(tracker_summary.read_text(encoding='utf-8'))
+                        if a.get('status') == 'RECORDED' and b.get('status') == 'COMPLETED':
+                            recorded_at = time.monotonic()
+                            print('[COLLECTOR] Complete capture saved; awaiting Kit exit', flush=True)
+                except (json.JSONDecodeError, OSError):
+                    pass  # Wait for the atomicity window during file writes.
+            elif time.monotonic() - recorded_at >= grace_seconds:
+                print('[COLLECTOR] Kit shutdown exceeded grace; terminating completed capture process', flush=True)
+                process.terminate()
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                stopped_after_capture = True
+                break
+            time.sleep(1.0)
+    except BaseException:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+        raise
+    data, metadata = validated_capture(capture_dir)
+    if stopped_after_capture:
+        print(f'[COLLECTOR] Preserved {metadata["samples"]} finished physics samples despite Kit teardown delay')
+    return data, metadata
 
 
 def finite_parameters(model):
@@ -188,8 +262,8 @@ def update_actor(model, model_path, actor_path, new_capture, historical,
                                                       stride=args.policy_stride)
     # Evaluate on both newest-run holdout and unchanged development holdout.
     # DO NOT access the reserved independent third recording.
-    _, old_validation, _ = build_samples(historical,
-                                        stride=args.policy_stride)
+    old_training, old_validation, _ = build_samples(historical,
+                                                   stride=args.policy_stride)
     validation = tuple(torch.cat((new_validation[i], old_validation[i]), dim=0)
                        for i in range(3))
     cfg = SimpleNamespace(tilt_weight=args.tilt_weight,
@@ -215,8 +289,15 @@ def update_actor(model, model_path, actor_path, new_capture, historical,
         aloss, closs=[], []
         actor.train(); critic.train()
         for _ in range(args.policy_updates):
-            index = torch.randint(len(new_training[0]), (args.batch_size,))
-            state, held, ref = [t[index].to(device) for t in new_training]
+            # Online replay: train on current experience AND all earlier episodes.
+            n_recent = max(1, min(args.batch_size-1,
+                                  round(args.batch_size*args.replay_recent_fraction)))
+            n_old = args.batch_size - n_recent
+            indices_recent = torch.randint(len(new_training[0]), (n_recent,))
+            indices_old = torch.randint(len(old_training[0]), (n_old,))
+            state, held, ref = [torch.cat((new_training[i][indices_recent],
+                                          old_training[i][indices_old]), dim=0).to(device)
+                                for i in range(3)]
             for par in critic.parameters():
                 par.requires_grad_(False)
             reward, states, _, final = imagined_rollout(
@@ -308,6 +389,8 @@ def update_actor(model, model_path, actor_path, new_capture, historical,
         'learning_history':hist,
         'candidate_promoted':best_epoch>0,
         'policy_checkpoint_for_next_cycle':str(selected_path),
+        'replay_recent_fraction':args.replay_recent_fraction,
+        'replay_old_episode_count':len(historical),
     }
 
 
@@ -323,6 +406,8 @@ def main():
     ap.add_argument('--policy-epochs',type=int,default=3)
     ap.add_argument('--policy-updates',type=int,default=40)
     ap.add_argument('--policy-stride',type=int,default=12)
+    ap.add_argument('--replay-recent-fraction',type=float,default=0.65,
+                    help='Fraction of policy minibatches drawn from the latest online episode')
     ap.add_argument('--batch-size',type=int,default=64)
     ap.add_argument('--model-lr',type=float,default=1e-4)
     ap.add_argument('--actor-lr',type=float,default=8e-5)
@@ -337,7 +422,19 @@ def main():
     ap.add_argument('--explore-noise-rad',type=float,default=0.0002)
     ap.add_argument('--tracking-duration-s',type=float,default=35.0)
     ap.add_argument('--headless',action='store_true')
+    ap.add_argument('--resume',action='store_true',
+                    help='Reuse already completed captures and skip their Isaac Sim collection')
+    ap.add_argument('--collector-exit-grace-s',type=float,default=30.0,
+                    help='Seconds allowed for Isaac Kit shutdown after a complete capture')
     ap.add_argument('--seed',type=int,default=42)
+    ap.add_argument('--max-saturation-fraction',type=float,default=0.8,
+                    help='Reject new low-diversity captures before changing learned weights')
+    ap.add_argument('--allow-low-coverage',action='store_true',
+                    help='Research override to keep a low-diversity capture (not recommended)')
+    ap.add_argument('--bearing-source',choices=('legacy','pixel'),default='pixel',
+                    help='Use experimental optical pixel bearing or original reconstructed world bearing')
+    ap.add_argument('--curriculum', choices=('diverse', 'sine-only'), default='diverse',
+                    help='Deterministic bounded actor profiles for successive cycles')
     args=ap.parse_args()
     for k in ('cycles','model_epochs','model_stride','policy_epochs',
               'policy_updates','policy_stride','batch_size'):
@@ -346,6 +443,12 @@ def main():
     for path in [args.model,args.actor,*args.historical]:
         if not path.is_file():
             ap.error(f'Missing input: {path}')
+    if args.batch_size < 2 or not 0.0 < args.replay_recent_fraction < 1.0:
+        ap.error('Replay mixing needs --batch-size >= 2 and --replay-recent-fraction in (0, 1)')
+    if not 0.0 < args.max_saturation_fraction <= 1.0:
+        ap.error('--max-saturation-fraction must be in (0, 1]')
+    if args.collector_exit_grace_s < 1:
+        ap.error('--collector-exit-grace-s must be at least 1 second')
     if args.tracking_duration_s < 10:
         ap.error('Use at least 10 seconds of tracking')
     random.seed(args.seed)
@@ -357,46 +460,100 @@ def main():
     current_model=args.model.resolve()
     current_actor=args.actor.resolve()
     history=[]
+    # Deterministic diversity in the 20-degree pan workspace. Keep each
+    # accepted physical episode in replay for ALL subsequent learning cycles.
+    curriculum = (
+        ('sine', 0.22, 5.0),
+        ('triangle', 0.35, 7.0),
+        ('dwell', 0.15, 9.0),
+        ('multisine', 0.42, 6.0),
+        ('chirp', 0.28, 8.0),
+    )
+    previous_online_captures = []
     for cycle in range(1,args.cycles+1):
         cycle_out=root/f'cycle_{cycle:02d}'
-        cycle_out.mkdir(parents=True,exist_ok=False)
+        if cycle_out.exists() and not args.resume:
+            raise RuntimeError(f'{cycle_out} already exists; pass --resume to reuse its capture')
+        cycle_out.mkdir(parents=True,exist_ok=True)
         new_capture_dir=cycle_out/'experience'
-        # Alternate trajectories to create genuine state distribution variation.
-        amplitude=[0.22,0.35,0.15,0.42][(cycle-1)%4]
-        period=[5.0,7.0,9.0,6.0][(cycle-1)%4]
+        # Alternate physically bounded trajectories, not only sine periods.
+        profile, amplitude, period = curriculum[(cycle-1) % len(curriculum)]
+        if args.curriculum == 'sine-only':
+            profile = 'sine'
         command=[sys.executable,str(HERE/'raven_supermimic_experience_collect_v2.py'),
                  '--policy',str(current_actor),
                  '--online-out',str(new_capture_dir),
                  '--blend',str(args.blend),
                  '--explore-noise-rad',str(args.explore_noise_rad),
                  '--seed',str(args.seed+cycle),
+                 '--motion-profile',profile,
+                 '--bearing-source',args.bearing_source,
                  '--actor-amplitude-m',str(amplitude),
                  '--actor-period-s',str(period),
                  '--tracking-duration-s',str(args.tracking_duration_s)]
         if args.headless:
             command.append('--headless')
-        print(f'\n=== CYCLE {cycle}/{args.cycles}: NEW SIMULATOR EXPERIENCE ===',flush=True)
-        subprocess.run(command,cwd=ROOT,check=True)
-        data=new_capture_dir/'raven_g1_state_action_120hz.jsonl'
-        summary=new_capture_dir/'raven_g1_state_action.summary.json'
-        if not data.is_file() or not summary.is_file():
-            raise RuntimeError('Simulator did not create expected transition replay')
-        metadata=json.loads(summary.read_text(encoding='utf-8'))
-        if (metadata.get('status')!='RECORDED'
-            or int(metadata.get('policy_steps_applied',0))<1):
-            raise RuntimeError('No actor-guided physics transitions: refusing learning cycle')
+        prior_metrics = cycle_out / 'learning_metrics.json'
+        prior_model = cycle_out / 'world_model_online.pt'
+        if args.resume and prior_metrics.is_file() and prior_model.is_file():
+            completed = json.loads(prior_metrics.read_text(encoding='utf-8'))
+            current_model = prior_model.resolve()
+            current_actor = Path(completed['next_actor']).resolve()
+            if not current_actor.is_file():
+                raise RuntimeError(f'Previous cycle actor checkpoint missing: {current_actor}')
+            history.append(completed)
+            # Completed cycles are part of the replay buffer after resume.
+            old_capture = Path(completed['new_physics_capture']).resolve()
+            if not old_capture.is_file():
+                raise RuntimeError(f'Missing prior online replay capture: {old_capture}')
+            previous_online_captures.append(old_capture)
+            print(f'=== CYCLE {cycle}: already trained; continuing with saved checkpoints ===', flush=True)
+            continue
+        if prior_metrics.exists():
+            raise RuntimeError(f'Existing training metrics would be overwritten: {prior_metrics}')
+        if args.resume and new_capture_dir.exists():
+            print(f'\n=== CYCLE {cycle}: RESUMING FROM SAVED SIMULATOR CAPTURE ===',flush=True)
+            data, metadata = validated_capture(new_capture_dir)
+        else:
+            print(f'\n=== CYCLE {cycle}/{args.cycles}: NEW SIMULATOR EXPERIENCE ===',flush=True)
+            data, metadata = collect_episode(command, new_capture_dir,
+                                             args.collector_exit_grace_s)
+        print(f'[TRAINING] Using {metadata["samples"]} physics samples '
+              f'({metadata["policy_steps_applied"]} actor-guided steps)', flush=True)
+        print(f'[CURRICULUM] profile={metadata.get("motion_profile", profile)} '
+              f'amplitude={amplitude}m period={period}s; '
+              f'prior online replay episodes={len(previous_online_captures)}', flush=True)
+        coverage = analyse_tracking_coverage(new_capture_dir/'raven_actor_tracking.csv')
+        print(f'[COVERAGE] desired_pan=[{coverage["target_min_deg"]:+.2f}, '
+              f'{coverage["target_max_deg"]:+.2f}]deg, '
+              f'saturated={coverage["saturated_fraction"]:.1%}, '
+              f'target_both_sides={coverage["target_traversed_both_sides"]}',flush=True)
+        if ((coverage['saturated_fraction'] > args.max_saturation_fraction
+             or not coverage['target_traversed_both_sides'])
+             and not args.allow_low_coverage):
+            raise RuntimeError('Capture preserved but learning STOPPED: camera pan target '
+                               'did not traverse both directions or remained saturated. '
+                               'Run raven_curriculum_diagnostics.py; check optical bearing '
+                               'against actor ground truth before training more.')
+        replay_history = [*map(Path, args.historical), *previous_online_captures]
         print(f'\n=== CYCLE {cycle}: UPDATE DYNAMICS FROM NEW PHYSICS ===',flush=True)
         model, next_model, model_report=update_dynamics(
-            current_model,list(map(Path,args.historical)),data,cycle_out,
+            current_model,replay_history,data,cycle_out,
             args,device)
         print(f'\n=== CYCLE {cycle}: ACTOR-CRITIC BACKPROP ===',flush=True)
         next_actor, policy_report=update_actor(
-            model,next_model,current_actor,data,list(map(Path,args.historical)),
+            model,next_model,current_actor,data,replay_history,
             cycle_out,args,device)
         entry={
             'cycle':cycle,
             'new_physics_capture':str(data),
             'actor_guided_physics_steps':metadata['policy_steps_applied'],
+            'motion_profile':metadata.get('motion_profile','sine'),
+            'bearing_source':metadata.get('bearing_source','legacy'),
+            'motion_amplitude_m':amplitude,
+            'motion_period_s':period,
+            'replay_episode_count':len(replay_history)+1,
+            'coverage':coverage,
             'model_update':model_report,
             'policy_update':policy_report,
             'next_actor':str(next_actor),
@@ -407,6 +564,7 @@ def main():
             json.dumps(entry,indent=2),encoding='utf-8')
         current_model=next_model
         current_actor=next_actor
+        previous_online_captures.append(data.resolve())
         (root/'latest_training_summary.json').write_text(json.dumps({
             'online_learning':True,
             'note':'Experimental simulator-in-the-loop model-based learning; not official SuperMimic',

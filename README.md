@@ -1,135 +1,208 @@
-# Template for Isaac Lab Projects
+# RAVEN
+### Latency-Aware Predictive Digital Twin for Humanoid Robotic Cinematography
 
-## Overview
+**RAVEN** is a robotics research framework investigating autonomous cinematography using the **Unitree G1 humanoid robot**, **NVIDIA Isaac Sim**, RGB-D perception, and model-based reinforcement learning.
 
-This project/repository serves as a template for building projects or extensions based on Isaac Lab.
-It allows you to develop in an isolated environment, outside of the core Isaac Lab repository.
+The project aims to develop a predictive control system capable of tracking moving subjects, maintaining stable cinematic framing, and compensating for perception and actuation latency within a physics-based digital twin.
 
-**Key Features:**
+RAVEN is being developed as part of PhD research at the **University of York, Department of Computer Science**.
 
-- `Isolation` Work outside the core Isaac Lab repository, ensuring that your development efforts remain self-contained.
-- `Flexibility` This template is set up to allow your code to be run as an extension in Omniverse.
+> **Research status:** Active development. G1 camera tracking, physical simulation, neural dynamics modelling and iterative actor–critic training have been demonstrated in simulation. Independent closed-loop evaluation of the latest learned policy and physical robot deployment remain future milestones.
 
-**Keywords:** extension, template, isaaclab
+---
 
-## Installation
+## Research Objectives
 
-- Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html).
-  We recommend using the conda or uv installation as it simplifies calling Python scripts from the terminal.
+RAVEN investigates how learned predictive control can improve humanoid robotic cinematography, particularly under uncertain dynamics and system latency.
 
-- Clone or copy this project/repository separately from the Isaac Lab installation (i.e. outside the `IsaacLab` directory):
+The principal objectives are:
 
-- Using a python interpreter that has Isaac Lab installed, install the library in editable mode using:
+- Develop a physics-based digital twin of a humanoid robotic camera operator.
+- Implement RGB-D perception for actor detection and tracking.
+- Learn robot and camera dynamics from simulation experience.
+- Train control policies for accurate, smooth and stable camera movements.
+- Investigate predictive compensation for sensor and actuation latency.
+- Evaluate learned controllers against conventional control approaches.
+- Establish a foundation for eventual sim-to-real transfer to a physical Unitree G1.
 
-    ```bash
-    # use 'PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-    python -m pip install -e source/raven_g1
+## System Architecture
 
-- Verify that the extension is correctly installed by:
+RAVEN combines several interconnected components:
 
-    - Listing the available tasks:
+| Component | Description |
+|---|---|
+| **Unitree G1** | Humanoid robot model providing articulated camera-control movements |
+| **NVIDIA Isaac Sim / Isaac Lab** | Physics-based digital twin and simulation environment |
+| **RGB-D Perception** | Actor detection, depth sensing and visual tracking |
+| **Baseline Controller** | Conventional actor-following camera controller |
+| **Neural World Model** | Predicts system dynamics and the consequences of control actions |
+| **Actor–Critic Policy** | Learns control actions through model-based optimisation |
+| **Experience Replay** | Reuses historical and newly collected simulation transitions |
+| **Evaluation Pipeline** | Measures tracking accuracy, stability and policy performance |
 
-        Note: It the task name changes, it may be necessary to update the search pattern `"Template-"`
-        (in the `scripts/list_envs.py` file) so that it can be listed.
+### Learning Architecture
 
-        ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/list_envs.py
-        ```
+RAVEN currently uses a **custom SuperMimic-inspired model-based reinforcement learning architecture**.
 
-    - Running a task:
+The learning process consists of:
 
-        ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/<RL_LIBRARY>/train.py --task=<TASK_NAME>
-        ```
+1. **Experience collection:** G1 performs camera tracking within Isaac Sim while recording robot states, actions and sensor observations.
+2. **Dynamics learning:** A neural World Model learns to predict system behaviour from recorded physical transitions.
+3. **Policy optimisation:** An Actor–Critic network learns control actions through differentiable imagined trajectories.
+4. **Policy evaluation:** Candidate policies are assessed against tracking and stability constraints.
+5. **Iterative refinement:** Accepted policies are reused in subsequent simulation experience-collection cycles.
 
-    - Running a task with dummy agents:
+The implementation is inspired by concepts associated with SuperMimic but is **not a reproduction or complete implementation of the original framework**.
 
-        These include dummy agents that output zero or random agents. They are useful to ensure that the environments are configured correctly.
+## Current Capabilities
 
-        - Zero-action agent
+### Humanoid Camera Control
 
-            ```bash
-            # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-            python scripts/zero_agent.py --task=<TASK_NAME>
-            ```
-        - Random-action agent
+- Simulated Unitree G1 with articulated joint control.
+- Physical tripod-pan interaction driven by G1 movements.
+- RGB-D-based actor tracking.
+- Constrained camera pan operation.
+- Temporary physics-assisted grasp for experimental stability.
+- Camera calibration and tracking measurements.
 
-            ```bash
-            # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-            python scripts/random_agent.py --task=<TASK_NAME>
-            ```
+### Learning and Training
 
-### Set up IDE (Optional)
+- Neural dynamics prediction using a learned World Model.
+- Actor–Critic policy optimisation.
+- Differentiable multi-step prediction.
+- Simulation-based experience collection at 120 Hz.
+- Cumulative experience replay across learning cycles.
+- Actor-motion curriculum including sinusoidal, triangular, dwell and multisine trajectories.
+- Checkpoint evaluation, selection and training resumption.
+- Large-scale policy optimisation experiments.
 
-To setup the IDE, please follow these instructions:
+## Experimental Progress
 
-- Run VSCode Tasks, by pressing `Ctrl+Shift+P`, selecting `Tasks: Run Task` and running the `setup_python_env` in the drop down menu.
-  When running this task, you will be prompted to add the absolute path to your Isaac Sim installation.
+### Physics-Based Actor Tracking
 
-If everything executes correctly, it should create a file .python.env in the `.vscode` directory.
-The file contains the python paths to all the extensions provided by Isaac Sim and Omniverse.
-This helps in indexing all the python modules for intelligent suggestions while writing code.
+RAVEN has demonstrated actor tracking through a simulated G1 operating a camera tripod.
 
-### Setup as Omniverse Extension (Optional)
+The system has completed tracking episodes with 351/351 valid RGB-D detections and bidirectional camera-pan control.
 
-We provide an example UI extension that will load upon enabling your extension defined in `source/raven_g1/raven_g1/ui_extension_example.py`.
+Following improvements to perception and trajectory generation, curriculum experiments achieved **0% pan-target saturation** across multiple actor-motion profiles.
 
-To enable your extension, follow these steps:
+### Iterative Learning
 
-1. **Add the search path of this project/repository** to the extension manager:
-    - Navigate to the extension manager using `Window` -> `Extensions`.
-    - Click on the **Hamburger Icon**, then go to `Settings`.
-    - In the `Extension Search Paths`, enter the absolute path to the `source` directory of this project/repository.
-    - If not already present, in the `Extension Search Paths`, enter the path that leads to Isaac Lab's extension directory directory (`IsaacLab/source`)
-    - Click on the **Hamburger Icon**, then click `Refresh`.
+Four simulation-learning cycles have been completed, demonstrating repeated experience collection, World Model updates and Actor–Critic training.
 
-2. **Search and enable your extension**:
-    - Find your extension under the `Third Party` category.
-    - Toggle it to enable your extension.
+The World Model has shown reductions in validation loss across successive experiments, while candidate policy checkpoints are retained or rejected according to configured performance criteria.
 
-## Code formatting
+### 5,000-Update Actor–Critic Experiment
 
-We have a pre-commit template to automatically format your code.
-To install pre-commit:
+A training experiment comprising **5,000 actor updates and 5,000 critic updates** was completed using accumulated simulation experience.
 
-```bash
-pip install pre-commit
+The strongest accepted checkpoint occurred at **iteration 1,400**.
+
+| Metric | Starting Policy | Selected Policy |
+|---|---:|---:|
+| Model-predicted pan error | 0.20580° | 0.14248° |
+| Model-predicted tilt deviation | 0.03639° | 0.01422° |
+| Evaluation score | 0.28101 | 0.17453 |
+
+This represents:
+
+- **30.8% reduction** in model-predicted pan error.
+- **60.9% reduction** in model-predicted tilt deviation.
+- **37.9% reduction** in the combined evaluation score.
+
+Performance deteriorated after the selected iteration, highlighting the importance of checkpoint selection, training stability and independent evaluation.
+
+**These improvements are measured using the learned dynamics model. They do not yet establish equivalent performance improvements in independent closed-loop Isaac Sim trials.**
+
+## Technology Stack
+
+| Technology | Application |
+|---|---|
+| Python | Simulation, training and evaluation |
+| PyTorch | Neural networks and gradient-based optimisation |
+| NVIDIA Isaac Sim | Robotics simulation and physics |
+| NVIDIA Isaac Lab | Robotics research environment |
+| USD / PhysX | Scene representation and physical interactions |
+| RGB-D Cameras | Visual perception and depth sensing |
+| Git / GitHub | Source control and research development |
+
+## Repository Structure
+
+The repository is organised around simulation, learning and evaluation scripts.
+
+```text
+raven-g1/
+├── scripts/
+│   ├── raven_g1_actor_tracking.py
+│   ├── raven_supermimic_world_model_v2.py
+│   ├── raven_supermimic_actor_critic_v1_1.py
+│   ├── raven_supermimic_experience_collect_v2.py
+│   ├── raven_supermimic_training_v2.py
+│   ├── raven_supermimic_policy_train_v3.py
+│   └── raven_curriculum_diagnostics.py
+│
+├── raven_training_results/       # Local experiment outputs
+├── raven_tracking_results/       # Local tracking measurements
+└── README.md
 ```
 
-Then you can run pre-commit with:
+*The structure above highlights the principal research components rather than listing every repository file. Training datasets and model checkpoints may be stored locally and excluded from Git.*
 
-```bash
-pre-commit run --all-files
+## Running the Learning Pipeline
+
+The current experimental workflow is designed for a configured Isaac Sim / Isaac Lab environment.
+
+To execute the iterative learning pipeline:
+
+```powershell
+python .\scripts\raven_supermimic_training_v2.py `
+    --cycles 4 `
+    --resume `
+    --headless `
+    --bearing-source pixel
 ```
 
-## Troubleshooting
+To inspect the collected curriculum experience:
 
-### Pylance Missing Indexing of Extensions
-
-In some VsCode versions, the indexing of part of the extensions is missing.
-In this case, add the path to your extension in `.vscode/settings.json` under the key `"python.analysis.extraPaths"`.
-
-```json
-{
-    "python.analysis.extraPaths": [
-        "<path-to-ext-repo>/source/raven_g1"
-    ]
-}
+```powershell
+python .\scripts\raven_curriculum_diagnostics.py `
+    --root .\raven_training_results\supermimic_online_v2
 ```
 
-### Pylance Crash
+Training requires the appropriate Python environment, dependencies, simulation assets, and existing model checkpoints where applicable. These commands are examples of the research workflow, not a complete clean-install procedure.
 
-If you encounter a crash in `pylance`, it is probable that too many files are indexed and you run out of memory.
-A possible solution is to exclude some of omniverse packages that are not used in your project.
-To do so, modify `.vscode/settings.json` and comment out packages under the key `"python.analysis.extraPaths"`
-Some examples of packages that can likely be excluded are:
+## Research Roadmap
 
-```json
-"<path-to-isaac-sim>/extscache/omni.anim.*"         // Animation packages
-"<path-to-isaac-sim>/extscache/omni.kit.*"          // Kit UI tools
-"<path-to-isaac-sim>/extscache/omni.graph.*"        // Graph UI tools
-"<path-to-isaac-sim>/extscache/omni.services.*"     // Services tools
-...
-```
+- [x] Unitree G1 digital twin in Isaac Sim
+- [x] RGB-D actor detection and tracking
+- [x] Physical tripod-pan interaction
+- [x] Baseline camera-control system
+- [x] Neural World Model
+- [x] SuperMimic-inspired Actor–Critic learning
+- [x] Iterative simulation experience collection
+- [x] Diverse actor-motion curriculum
+- [x] 5,000-update policy training experiment
+- [ ] Independent closed-loop evaluation on unseen trajectories
+- [ ] Improved long-horizon optimisation stability
+- [ ] Image-space cinematic framing objectives
+- [ ] Explicit observation and actuation latency modelling
+- [ ] Predictive latency compensation
+- [ ] Robust grasp and contact modelling
+- [ ] Supervised physical G1 validation
+- [ ] Autonomous real-world cinematography
+
+## Research Context
+
+**Project:** RAVEN — A Latency-Aware Predictive Digital Twin Framework for Humanoid Robotic Cinematography in Virtual Production
+
+**Institution:** University of York  
+**Department:** Computer Science  
+**Research Area:** Humanoid Robotics, Model-Based Reinforcement Learning, Digital Twins and Virtual Production
+
+RAVEN investigates how learned predictive models and adaptive control can enable humanoid robots to perform increasingly autonomous cinematographic tasks.
+
+## Disclaimer
+
+RAVEN is an experimental academic research project.
+
+Current learned policies are intended for simulation research and are **not yet validated for deployment on physical robotic hardware**. Physical deployment will require additional safety engineering, hardware calibration, contact validation and supervised testing.

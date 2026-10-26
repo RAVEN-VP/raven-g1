@@ -1,0 +1,68 @@
+{
+  "experiment": "RAVEN third-trajectory independent test: frozen V1 vs V2",
+  "third_recording": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_g1_state_action_120hz.jsonl",
+  "V2_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "V1_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\world_model_bootstrap\\world_model.pt",
+  "retrained": false,
+  "model_controls_robot": false,
+  "physics_hz": 120,
+  "states": 4202,
+  "evaluation_windows": 1049,
+  "window_stride": 4,
+  "horizon_steps": 8,
+  "horizon_ms": 66.67,
+  "tracking_mae_deg": 0.5025982393158688,
+  "detection_rate": 1.0,
+  "results": {
+    "pan": {
+      "V2": {
+        "mae_deg": 0.017449,
+        "p95_deg": 0.04234,
+        "max_deg": 0.105892
+      },
+      "V1": {
+        "mae_deg": 0.174641,
+        "p95_deg": 0.437669,
+        "max_deg": 0.81722
+      },
+      "constant_velocity": {
+        "mae_deg": 0.144537,
+        "p95_deg": 0.318891,
+        "max_deg": 0.414106
+      },
+      "stationary": {
+        "mae_deg": 0.281569,
+        "p95_deg": 0.476658,
+        "max_deg": 0.517858
+      }
+    },
+    "tilt": {
+      "V2": {
+        "mae_deg": 0.010234,
+        "p95_deg": 0.024753,
+        "max_deg": 0.053757
+      },
+      "V1": {
+        "mae_deg": 0.023539,
+        "p95_deg": 0.063065,
+        "max_deg": 0.095095
+      },
+      "constant_velocity": {
+        "mae_deg": 0.094341,
+        "p95_deg": 0.206922,
+        "max_deg": 0.334447
+      },
+      "stationary": {
+        "mae_deg": 0.023289,
+        "p95_deg": 0.049938,
+        "max_deg": 0.114507
+      }
+    }
+  },
+  "V2_improvement_over_constant_velocity_percent": 87.93,
+  "limitations": [
+    "One independent test run; repeated starts yield correlated test windows.",
+    "Rollouts condition on recorded future actions; no policy has been trained.",
+    "No controlled camera/actuator latency has been introduced yet."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "experiment": "RAVEN SuperMimic-inspired offline actor/critic bootstrap V1",
+  "official_supermimic_reproduction": false,
+  "simulator_transitions_collected_during_training": false,
+  "world_model_updated_during_training": false,
+  "world_model_is_frozen": true,
+  "trained_policy": true,
+  "policy_validated_in_isaac_sim": false,
+  "not_real_time_integrated": true,
+  "notes": [
+    "This is an offline proof of actor and critic learning through V2's imagined differentiable trajectories.",
+    "Validation forecasts are correlated same-run holdouts and are not physical policy evidence.",
+    "The official method alternates simulator replay collection, world-model fitting and 32-step actor/critic training.",
+    "The dynamics state has NO explicit grasp/contact, collision or real joint-limit representation.",
+    "Current desired-pan samples are held constant for each imagined rollout; future observations are not leaked.",
+    "End-to-end Isaac Sim closed-loop, dataset shift, and inference latency under simulator load are NOT tested."
+  ],
+  "frozen_v2_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "source_runs": [
+    {
+      "capture": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_g1_state_action_120hz.jsonl",
+      "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_actor_tracking.csv",
+      "tracking_phase_pan_zero_rad": -0.04552965983748436,
+      "total_tracking_physics_states": 4202,
+      "training_fraction": 0.8
+    },
+    {
+      "capture": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_004925_836186\\raven_g1_state_action_120hz.jsonl",
+      "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_004925_836186\\raven_actor_tracking.csv",
+      "tracking_phase_pan_zero_rad": -0.04552965983748436,
+      "total_tracking_physics_states": 4202,
+      "training_fraction": 0.8
+    }
+  ],
+  "epochs": 1,
+  "updates_per_epoch": 5,
+  "batch_size": 16,
+  "horizon_steps": 8,
+  "physics_hz": 120,
+  "sample_and_hold_vision_hz": 10,
+  "discount_gamma": 0.98,
+  "td_lambda": 0.95,
+  "history": [
+    {
+      "epoch": 1,
+      "actor_loss": 2.884473133087158,
+      "critic_loss": 1.0900492906570434,
+      "held_pan_abs_error_deg": 0.25637634842913004,
+      "actor_pan_abs_error_deg": 0.2549506277520803,
+      "held_tilt_delta_deg": 0.026613462911096456,
+      "actor_tilt_delta_deg": 0.026105138345198044
+    }
+  ],
+  "offline_inference_benchmark": {
+    "median_ms": 0.22870002430863678,
+    "p95_ms": 0.2517049986636266,
+    "repeats": 200,
+    "device": "cuda",
+    "excludes": "Isaac Sim, telemetry, Python loop integration, RGB-D, communications"
+  },
+  "saved_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\policy_v2_actor_critic\\actor_critic_v1.pt"
+}

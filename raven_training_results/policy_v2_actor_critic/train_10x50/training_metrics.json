@@ -1,0 +1,143 @@
+{
+  "experiment": "RAVEN SuperMimic-inspired offline actor/critic bootstrap V1",
+  "official_supermimic_reproduction": false,
+  "simulator_transitions_collected_during_training": false,
+  "world_model_updated_during_training": false,
+  "world_model_is_frozen": true,
+  "trained_policy": true,
+  "policy_validated_in_isaac_sim": false,
+  "not_real_time_integrated": true,
+  "notes": [
+    "This is an offline proof of actor and critic learning through V2's imagined differentiable trajectories.",
+    "Validation forecasts are correlated same-run holdouts and are not physical policy evidence.",
+    "The official method alternates simulator replay collection, world-model fitting and 32-step actor/critic training.",
+    "The dynamics state has NO explicit grasp/contact, collision or real joint-limit representation.",
+    "Current desired-pan samples are held constant for each imagined rollout; future observations are not leaked.",
+    "End-to-end Isaac Sim closed-loop, dataset shift, and inference latency under simulator load are NOT tested."
+  ],
+  "frozen_v2_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "source_runs": [
+    {
+      "capture": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_g1_state_action_120hz.jsonl",
+      "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_actor_tracking.csv",
+      "tracking_phase_pan_zero_rad": -0.04552965983748436,
+      "total_tracking_physics_states": 4202,
+      "training_fraction": 0.8
+    },
+    {
+      "capture": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_004925_836186\\raven_g1_state_action_120hz.jsonl",
+      "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_004925_836186\\raven_actor_tracking.csv",
+      "tracking_phase_pan_zero_rad": -0.04552965983748436,
+      "total_tracking_physics_states": 4202,
+      "training_fraction": 0.8
+    }
+  ],
+  "epochs": 10,
+  "updates_per_epoch": 50,
+  "batch_size": 64,
+  "horizon_steps": 8,
+  "physics_hz": 120,
+  "sample_and_hold_vision_hz": 10,
+  "discount_gamma": 0.98,
+  "td_lambda": 0.95,
+  "history": [
+    {
+      "epoch": 1,
+      "actor_loss": 2.8642960166931153,
+      "critic_loss": 0.9357233238220215,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.1994390399262741,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.0157900063208797
+    },
+    {
+      "epoch": 2,
+      "actor_loss": 2.198204598426819,
+      "critic_loss": 0.39804367363452914,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.08948404839485073,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.11472082511518501
+    },
+    {
+      "epoch": 3,
+      "actor_loss": 1.6994197249412537,
+      "critic_loss": 0.17436262100934982,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.15740985676065844,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.1886749677427545
+    },
+    {
+      "epoch": 4,
+      "actor_loss": 1.677234766483307,
+      "critic_loss": 0.13044573694467546,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.1694889671533652,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.19376843438848204
+    },
+    {
+      "epoch": 5,
+      "actor_loss": 1.6830655813217164,
+      "critic_loss": 0.1057128493487835,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.1809325792448784,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.20089408941566944
+    },
+    {
+      "epoch": 6,
+      "actor_loss": 1.6980126595497131,
+      "critic_loss": 0.0810279367864132,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.19310018748206936,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.21683185850607528
+    },
+    {
+      "epoch": 7,
+      "actor_loss": 1.703859441280365,
+      "critic_loss": 0.07965553328394889,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.15326668218831005,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.23597179220624917
+    },
+    {
+      "epoch": 8,
+      "actor_loss": 1.6484551811218262,
+      "critic_loss": 0.07523404337465762,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.12824563614929607,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.2572829977778357
+    },
+    {
+      "epoch": 9,
+      "actor_loss": 1.6313857793807984,
+      "critic_loss": 0.07970117911696434,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.12603089756136626,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.260022310482716
+    },
+    {
+      "epoch": 10,
+      "actor_loss": 1.5977358436584472,
+      "critic_loss": 0.07702851869165897,
+      "held_pan_abs_error_deg": 0.2563763369833106,
+      "actor_pan_abs_error_deg": 0.12454622487564558,
+      "held_tilt_delta_deg": 0.026613468595201084,
+      "actor_tilt_delta_deg": 0.2558023297680083
+    }
+  ],
+  "offline_inference_benchmark": {
+    "median_ms": 0.2463000128045678,
+    "p95_ms": 0.28212499455548823,
+    "repeats": 200,
+    "device": "cuda",
+    "excludes": "Isaac Sim, telemetry, Python loop integration, RGB-D, communications"
+  },
+  "saved_checkpoint": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\policy_v2_actor_critic\\train_10x50\\actor_critic_v1.pt"
+}

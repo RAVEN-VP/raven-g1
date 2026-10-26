@@ -1,0 +1,39 @@
+{
+  "experiment": "V1.4 MPC offline measured compute-latency test",
+  "model": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "data": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_g1_state_action_120hz.jsonl",
+  "device": "cuda",
+  "iterations": 60,
+  "rollout_steps": 8,
+  "repeats_per_state": 2,
+  "median_ms": 853.3871999825351,
+  "p95_ms": 872.6139450096525,
+  "physics_120hz_deadline_ms": 8.333333333333334,
+  "vision_10hz_deadline_ms": 100.0,
+  "fits_120hz_by_median": false,
+  "fits_10hz_by_p95": false,
+  "cases": [
+    {
+      "tracking_time_s": 2.0,
+      "planner_wall_ms": [
+        875.6214000168256,
+        851.2026999960653
+      ],
+      "median_wall_ms": 863.4120500064455
+    },
+    {
+      "tracking_time_s": 20.0,
+      "planner_wall_ms": [
+        855.5716999690048,
+        840.3785999980755
+      ],
+      "median_wall_ms": 847.9751499835402
+    }
+  ],
+  "limitations": [
+    "Offline timing; actual Isaac Sim contention and camera work are not included.",
+    "The measured algorithm matches V1.4 planning but uses wide joint-limit placeholders for timing only.",
+    "Frame references come from last-known RGB-D samples; planning is not physically executed.",
+    "Meeting a deadline offline does not establish deterministic real-time operation."
+  ]
+}

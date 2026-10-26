@@ -1,0 +1,15 @@
+{
+  "experiment": "RAVEN G1 RGB-D physical actor tracking",
+  "status": "PAIRED_PHYSICS_WINDOW_DONE",
+  "tracking_duration_s": 35.0,
+  "camera_frames": 350,
+  "detected_frames": 350,
+  "reference_bearing_deg": 0.0736050973068757,
+  "actor_motion_started": true,
+  "detection_rate": 1.0,
+  "mean_absolute_tracking_error_deg": 0.5081835724533201,
+  "observed_pan_min_deg": -5.446545669650846,
+  "observed_pan_max_deg": 5.724795196719295,
+  "assisted_grasp": true,
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\policy_physics_v2\\case_07\\tracking\\raven_actor_tracking.csv"
+}

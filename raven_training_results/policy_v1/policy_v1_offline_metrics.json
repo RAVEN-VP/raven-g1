@@ -1,0 +1,204 @@
+{
+  "experiment": "RAVEN Policy V1: offline differentiable bounded action planning",
+  "frozen_world_model_v2": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "test_recording": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_g1_state_action_120hz.jsonl",
+  "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_actor_tracking.csv",
+  "physics_hz": 120,
+  "horizon_steps": 8,
+  "horizon_ms": 66.667,
+  "cases": 8,
+  "iterations": 40,
+  "joint_names": [
+    "waist_yaw_joint",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint"
+  ],
+  "max_command_delta_rad": [
+    0.006,
+    0.018,
+    0.012,
+    0.012,
+    0.012,
+    0.01,
+    0.01,
+    0.01
+  ],
+  "mean_held_command_model_predicted_terminal_pan_error_deg": 3.2783124446868896,
+  "mean_optimised_model_predicted_terminal_pan_error_deg": 2.630044937133789,
+  "predicted_error_change_percent": 19.774427193592782,
+  "cases_detail": [
+    {
+      "tracking_time_s": 2.0,
+      "reference_pan_deg": 5.303,
+      "current_pan_deg": 1.976842,
+      "held_command_predicted_final_pan_deg": 2.031482,
+      "planned_predicted_final_pan_deg": 2.73682,
+      "baseline_predicted_error_deg": 3.271518,
+      "planned_predicted_error_deg": 2.56618,
+      "max_joint_target_change_deg": 1.010656,
+      "planned_first_joint_targets_rad": [
+        0.1140409,
+        -1.1476252,
+        0.3507319,
+        1.198822,
+        2.0742722,
+        0.9677045,
+        -0.1049382,
+        -0.0711048
+      ]
+    },
+    {
+      "tracking_time_s": 6.7,
+      "reference_pan_deg": 4.275,
+      "current_pan_deg": 0.69003,
+      "held_command_predicted_final_pan_deg": 0.759313,
+      "planned_predicted_final_pan_deg": 1.379842,
+      "baseline_predicted_error_deg": 3.515687,
+      "planned_predicted_error_deg": 2.895158,
+      "max_joint_target_change_deg": 1.018764,
+      "planned_first_joint_targets_rad": [
+        0.1135841,
+        -1.1600052,
+        0.3358164,
+        1.1110574,
+        2.0358186,
+        0.8890908,
+        -0.0910842,
+        -0.1252289
+      ]
+    },
+    {
+      "tracking_time_s": 11.408,
+      "reference_pan_deg": 2.642,
+      "current_pan_deg": -1.111428,
+      "held_command_predicted_final_pan_deg": -0.971663,
+      "planned_predicted_final_pan_deg": -0.342961,
+      "baseline_predicted_error_deg": 3.613663,
+      "planned_predicted_error_deg": 2.984962,
+      "max_joint_target_change_deg": 1.021646,
+      "planned_first_joint_targets_rad": [
+        0.073371,
+        -1.1054887,
+        0.396047,
+        1.1194663,
+        2.0252576,
+        0.8994473,
+        -0.1028348,
+        -0.1984053
+      ]
+    },
+    {
+      "tracking_time_s": 16.117,
+      "reference_pan_deg": 0.643,
+      "current_pan_deg": -3.097823,
+      "held_command_predicted_final_pan_deg": -2.976395,
+      "planned_predicted_final_pan_deg": -2.322794,
+      "baseline_predicted_error_deg": 3.619395,
+      "planned_predicted_error_deg": 2.965794,
+      "max_joint_target_change_deg": 1.019447,
+      "planned_first_joint_targets_rad": [
+        0.0028587,
+        -1.0712308,
+        0.4739136,
+        1.141811,
+        2.0110853,
+        0.9144212,
+        -0.1009692,
+        -0.2465302
+      ]
+    },
+    {
+      "tracking_time_s": 20.817,
+      "reference_pan_deg": -1.422,
+      "current_pan_deg": -5.026762,
+      "held_command_predicted_final_pan_deg": -4.944731,
+      "planned_predicted_final_pan_deg": -4.291134,
+      "baseline_predicted_error_deg": 3.522731,
+      "planned_predicted_error_deg": 2.869134,
+      "max_joint_target_change_deg": 1.018518,
+      "planned_first_joint_targets_rad": [
+        -0.0632878,
+        -1.0320464,
+        0.5515386,
+        1.1638232,
+        1.991516,
+        0.9261529,
+        -0.1029231,
+        -0.3126686
+      ]
+    },
+    {
+      "tracking_time_s": 25.525,
+      "reference_pan_deg": -3.253,
+      "current_pan_deg": -6.59689,
+      "held_command_predicted_final_pan_deg": -6.533456,
+      "planned_predicted_final_pan_deg": -5.873367,
+      "baseline_predicted_error_deg": 3.280457,
+      "planned_predicted_error_deg": 2.620367,
+      "max_joint_target_change_deg": 1.016052,
+      "planned_first_joint_targets_rad": [
+        -0.11959,
+        -0.996446,
+        0.6243076,
+        1.1867846,
+        1.9872931,
+        0.9346779,
+        -0.108276,
+        -0.3831207
+      ]
+    },
+    {
+      "tracking_time_s": 30.233,
+      "reference_pan_deg": -4.675,
+      "current_pan_deg": -7.587229,
+      "held_command_predicted_final_pan_deg": -7.518303,
+      "planned_predicted_final_pan_deg": -6.874487,
+      "baseline_predicted_error_deg": 2.843304,
+      "planned_predicted_error_deg": 2.199487,
+      "max_joint_target_change_deg": 1.016872,
+      "planned_first_joint_targets_rad": [
+        -0.1607967,
+        -0.9674131,
+        0.6763026,
+        1.2141954,
+        1.9860815,
+        0.9493722,
+        -0.1109812,
+        -0.4159223
+      ]
+    },
+    {
+      "tracking_time_s": 34.942,
+      "reference_pan_deg": -5.412,
+      "current_pan_deg": -7.987484,
+      "held_command_predicted_final_pan_deg": -7.971745,
+      "planned_predicted_final_pan_deg": -7.351277,
+      "baseline_predicted_error_deg": 2.559744,
+      "planned_predicted_error_deg": 1.939277,
+      "max_joint_target_change_deg": 1.017398,
+      "planned_first_joint_targets_rad": [
+        -0.1805111,
+        -0.9497808,
+        0.7064394,
+        1.2121789,
+        1.9867163,
+        0.9808874,
+        -0.1132594,
+        -0.4298493
+      ]
+    }
+  ],
+  "caveats": [
+    "Predicted counterfactual improvement only; untested in Isaac Sim or on a robot.",
+    "This is MPC-style action optimisation, not a trained RL feedback policy.",
+    "No grasp/contact constraints, joint-limit checks or physical collision guarantees.",
+    "Uses current controller desired_pan_deg as a reference proxy, not direct actor pixel observations.",
+    "Current joint commands are held for the eight-step baseline; no future commands leak in.",
+    "Model predictions can be exploited outside the training distribution."
+  ]
+}

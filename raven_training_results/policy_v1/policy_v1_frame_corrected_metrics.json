@@ -1,0 +1,208 @@
+{
+  "experiment": "RAVEN Policy V1.1: coordinate-aligned offline differentiable action planning",
+  "pan_zero_absolute_deg": -2.6086573513541436,
+  "pan_csv_alignment_mae_deg": 0.015873417014941448,
+  "pan_csv_alignment_p95_deg": 0.04457200320275294,
+  "frozen_world_model_v2": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\world_model_v2\\world_model_v2.pt",
+  "test_recording": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_g1_state_action_120hz.jsonl",
+  "tracking_csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_012923_523533\\raven_actor_tracking.csv",
+  "physics_hz": 120,
+  "horizon_steps": 8,
+  "horizon_ms": 66.667,
+  "cases": 8,
+  "iterations": 40,
+  "joint_names": [
+    "waist_yaw_joint",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint"
+  ],
+  "max_command_delta_rad": [
+    0.006,
+    0.018,
+    0.012,
+    0.012,
+    0.012,
+    0.01,
+    0.01,
+    0.01
+  ],
+  "mean_held_command_model_predicted_terminal_pan_error_deg": 0.6818831562995911,
+  "mean_optimised_model_predicted_terminal_pan_error_deg": 0.18193422257900238,
+  "predicted_error_change_percent": 73.3188566254791,
+  "cases_detail": [
+    {
+      "tracking_time_s": 2.0,
+      "reference_pan_deg": 5.303,
+      "current_pan_deg": 4.5855,
+      "held_command_predicted_final_pan_deg": 4.640139,
+      "planned_predicted_final_pan_deg": 5.259438,
+      "baseline_predicted_error_deg": 0.662861,
+      "planned_predicted_error_deg": 0.043562,
+      "max_joint_target_change_deg": 0.967223,
+      "planned_first_joint_targets_rad": [
+        0.1144922,
+        -1.146767,
+        0.3508614,
+        1.198491,
+        2.076751,
+        0.9679673,
+        -0.1058135,
+        -0.0527974
+      ]
+    },
+    {
+      "tracking_time_s": 6.7,
+      "reference_pan_deg": 4.275,
+      "current_pan_deg": 3.298687,
+      "held_command_predicted_final_pan_deg": 3.367971,
+      "planned_predicted_final_pan_deg": 3.958505,
+      "baseline_predicted_error_deg": 0.90703,
+      "planned_predicted_error_deg": 0.316495,
+      "max_joint_target_change_deg": 1.006497,
+      "planned_first_joint_targets_rad": [
+        0.1191473,
+        -1.1600252,
+        0.3359052,
+        1.0904044,
+        2.037993,
+        0.8892138,
+        -0.1098335,
+        -0.1252407
+      ]
+    },
+    {
+      "tracking_time_s": 11.408,
+      "reference_pan_deg": 2.642,
+      "current_pan_deg": 1.497229,
+      "held_command_predicted_final_pan_deg": 1.636994,
+      "planned_predicted_final_pan_deg": 2.251208,
+      "baseline_predicted_error_deg": 1.005006,
+      "planned_predicted_error_deg": 0.390792,
+      "max_joint_target_change_deg": 1.018771,
+      "planned_first_joint_targets_rad": [
+        0.0745341,
+        -1.1055577,
+        0.3963571,
+        1.1190648,
+        2.0251629,
+        0.9012654,
+        -0.1025095,
+        -0.1922391
+      ]
+    },
+    {
+      "tracking_time_s": 16.117,
+      "reference_pan_deg": 0.643,
+      "current_pan_deg": -0.489166,
+      "held_command_predicted_final_pan_deg": -0.367737,
+      "planned_predicted_final_pan_deg": 0.271385,
+      "baseline_predicted_error_deg": 1.010737,
+      "planned_predicted_error_deg": 0.371615,
+      "max_joint_target_change_deg": 1.009536,
+      "planned_first_joint_targets_rad": [
+        0.003603,
+        -1.0713718,
+        0.474079,
+        1.1417744,
+        2.010958,
+        0.9145114,
+        -0.1010545,
+        -0.2467605
+      ]
+    },
+    {
+      "tracking_time_s": 20.817,
+      "reference_pan_deg": -1.422,
+      "current_pan_deg": -2.418104,
+      "held_command_predicted_final_pan_deg": -2.336074,
+      "planned_predicted_final_pan_deg": -1.695226,
+      "baseline_predicted_error_deg": 0.914074,
+      "planned_predicted_error_deg": 0.273226,
+      "max_joint_target_change_deg": 1.010123,
+      "planned_first_joint_targets_rad": [
+        -0.0614418,
+        -1.0321236,
+        0.5519194,
+        1.1636926,
+        1.9910318,
+        0.9262412,
+        -0.1026195,
+        -0.3132685
+      ]
+    },
+    {
+      "tracking_time_s": 25.525,
+      "reference_pan_deg": -3.253,
+      "current_pan_deg": -3.988233,
+      "held_command_predicted_final_pan_deg": -3.924799,
+      "planned_predicted_final_pan_deg": -3.310596,
+      "baseline_predicted_error_deg": 0.671799,
+      "planned_predicted_error_deg": 0.057596,
+      "max_joint_target_change_deg": 0.992713,
+      "planned_first_joint_targets_rad": [
+        -0.1151265,
+        -0.9967668,
+        0.6247806,
+        1.1862565,
+        1.9869782,
+        0.9351774,
+        -0.1079654,
+        -0.3769862
+      ]
+    },
+    {
+      "tracking_time_s": 30.233,
+      "reference_pan_deg": -4.675,
+      "current_pan_deg": -4.978571,
+      "held_command_predicted_final_pan_deg": -4.909646,
+      "planned_predicted_final_pan_deg": -4.676315,
+      "baseline_predicted_error_deg": 0.234646,
+      "planned_predicted_error_deg": 0.001316,
+      "max_joint_target_change_deg": 0.565089,
+      "planned_first_joint_targets_rad": [
+        -0.1586965,
+        -0.9918587,
+        0.6780013,
+        1.208233,
+        1.9828914,
+        0.9536915,
+        -0.106895,
+        -0.4000807
+      ]
+    },
+    {
+      "tracking_time_s": 34.942,
+      "reference_pan_deg": -5.412,
+      "current_pan_deg": -5.378826,
+      "held_command_predicted_final_pan_deg": -5.363087,
+      "planned_predicted_final_pan_deg": -5.411128,
+      "baseline_predicted_error_deg": 0.048913,
+      "planned_predicted_error_deg": 0.000872,
+      "max_joint_target_change_deg": 0.131112,
+      "planned_first_joint_targets_rad": [
+        -0.1866742,
+        -0.9663432,
+        0.7200472,
+        1.2240258,
+        1.9772298,
+        0.9708738,
+        -0.1027883,
+        -0.4204405
+      ]
+    }
+  ],
+  "caveats": [
+    "Predicted counterfactual improvement only; untested in Isaac Sim or on a robot.",
+    "RGB-D pan reference corrected from relative to absolute joint coordinates; outputs shown relative to initial pan.",
+    "This is MPC-style action optimisation, not a trained RL feedback policy.",
+    "No grasp/contact constraints, joint-limit checks or physical collision guarantees.",
+    "Uses current controller desired_pan_deg as a reference proxy, not direct actor pixel observations.",
+    "Current joint commands are held for the eight-step baseline; no future commands leak in.",
+    "Model predictions can be exploited outside the training distribution."
+  ]
+}

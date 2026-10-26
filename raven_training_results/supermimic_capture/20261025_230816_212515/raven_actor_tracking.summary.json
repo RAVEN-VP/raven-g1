@@ -1,0 +1,15 @@
+{
+  "experiment": "RAVEN G1 RGB-D physical actor tracking",
+  "status": "COMPLETED",
+  "tracking_duration_s": 35.0,
+  "camera_frames": 351,
+  "detected_frames": 351,
+  "reference_bearing_deg": 0.054371081603286624,
+  "actor_motion_started": true,
+  "detection_rate": 1.0,
+  "mean_absolute_tracking_error_deg": 0.3485075290767822,
+  "observed_pan_min_deg": -8.68836006296129,
+  "observed_pan_max_deg": 9.250470117501354,
+  "assisted_grasp": true,
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_actor_tracking.csv"
+}

@@ -1,0 +1,24 @@
+{
+  "experiment": "Closer G1: live-handle closed-grip alignment and pan hold",
+  "g1_closer_by_m": 0.1,
+  "calibration_pose": "Baseline measured closed grasp around t=18s",
+  "grip_local_position_m": [
+    -0.0882,
+    0.0413,
+    0.0566
+  ],
+  "grip_local_quaternion_wxyz": [
+    -0.005,
+    -0.7,
+    0.699,
+    -0.147
+  ],
+  "max_position_error_m": 0.012,
+  "max_orientation_error_deg": 8.0,
+  "max_ik_joint_speed_rad_s": 0.4,
+  "grasp_ready_s": 12.0,
+  "tracking_starts_s": 15.75,
+  "baseline_controller_source_unchanged": true,
+  "monitoring": "120Hz recorder and 10Hz posture log",
+  "output": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\closer_grasp_alignment\\20261025_235826_511701"
+}

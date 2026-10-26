@@ -1,0 +1,81 @@
+{
+  "train": {
+    "rollout_horizon_steps": 8,
+    "rollout_duration_ms": 66.67,
+    "windows": 734,
+    "pan_mean_absolute_error_deg": 0.17294515224084336,
+    "pan_persistence_baseline_mae_deg": 0.12167863278480034,
+    "pan_step8_mae_deg": 0.2187340734259477,
+    "pan_persistence_step8_mae_deg": 0.21871378296163602,
+    "tilt_step8_mae_deg": 0.022968742234829368,
+    "joint_position_step8_mae_deg": 0.3232758949853183,
+    "joint_velocity_step8_mae_rad_s": 0.03494507819414139
+  },
+  "validation": {
+    "rollout_horizon_steps": 8,
+    "rollout_duration_ms": 66.67,
+    "windows": 156,
+    "pan_mean_absolute_error_deg": 0.24630980160132382,
+    "pan_persistence_baseline_mae_deg": 0.11925415575328382,
+    "pan_step8_mae_deg": 0.30812733581902335,
+    "pan_persistence_step8_mae_deg": 0.21051475451284393,
+    "tilt_step8_mae_deg": 0.030751095793717598,
+    "joint_position_step8_mae_deg": 0.432230672418965,
+    "joint_velocity_step8_mae_rad_s": 0.03583432734012604
+  },
+  "test": {
+    "rollout_horizon_steps": 8,
+    "rollout_duration_ms": 66.67,
+    "windows": 156,
+    "pan_mean_absolute_error_deg": 0.11535966726590717,
+    "pan_persistence_baseline_mae_deg": 0.11409408123747142,
+    "pan_step8_mae_deg": 0.15208482070069881,
+    "pan_persistence_step8_mae_deg": 0.20630767814923343,
+    "tilt_step8_mae_deg": 0.014993964437837227,
+    "joint_position_step8_mae_deg": 0.26252016169886483,
+    "joint_velocity_step8_mae_rad_s": 0.029550056904554367
+  },
+  "experiment": "SuperMimic-inspired OFFLINE 8-step RAVEN world model",
+  "is_official_supermimic": false,
+  "policy_trained": false,
+  "deployed_to_simulator": false,
+  "source_trajectory": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_g1_state_action_120hz.jsonl",
+  "training_phase_starts_at_s": 27.5,
+  "physics_hz": 120,
+  "selected_joint_names": [
+    "waist_yaw_joint",
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint"
+  ],
+  "selected_joint_indices": [
+    2,
+    11,
+    15,
+    19,
+    21,
+    23,
+    25,
+    27
+  ],
+  "capture_splits": {
+    "train": [
+      0,
+      2941
+    ],
+    "validation": [
+      2941,
+      3571
+    ],
+    "test": [
+      3571,
+      4202
+    ]
+  },
+  "best_validation_normalized_mse": 0.15517781674861908,
+  "limitation": "One closed-loop actor-tracking trajectory; no independent episode test."
+}

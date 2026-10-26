@@ -1,0 +1,70 @@
+{
+  "experiment": "RAVEN independent trajectory generalisation test",
+  "training_disabled": true,
+  "source_model": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\world_model_bootstrap\\world_model.pt",
+  "new_test_data": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261026_004925_836186\\raven_g1_state_action_120hz.jsonl",
+  "model_original_trajectory": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\supermimic_capture\\20261025_230816_212515\\raven_g1_state_action_120hz.jsonl",
+  "capture_status": "RECORDED",
+  "tracking_status": "COMPLETED",
+  "camera_detection_rate": 1.0,
+  "tracking_controller_mae_deg": 0.4099309327434148,
+  "tracking_phase_start_s": 27.5,
+  "state_count": 4202,
+  "evaluation_windows": 1049,
+  "horizon_steps": 8,
+  "horizon_ms": 66.67,
+  "device": "cuda",
+  "pan_model_vs_persistence_improvement_percent": 20.55,
+  "pan_model_vs_constant_velocity_improvement_percent": -15.26,
+  "results": {
+    "pan": {
+      "model_step8": {
+        "mae_deg": 0.193324,
+        "p95_abs_error_deg": 0.480973,
+        "max_abs_error_deg": 1.139924
+      },
+      "persistence_step8": {
+        "mae_deg": 0.243317,
+        "p95_abs_error_deg": 0.425762,
+        "max_abs_error_deg": 0.487405
+      },
+      "constant_velocity_step8": {
+        "mae_deg": 0.167731,
+        "p95_abs_error_deg": 0.338712,
+        "max_abs_error_deg": 0.494511
+      },
+      "model_steps1_to8": {
+        "mae_deg": 0.169389,
+        "p95_abs_error_deg": 0.452243,
+        "max_abs_error_deg": 1.139924
+      }
+    },
+    "tilt": {
+      "model_step8": {
+        "mae_deg": 0.02248,
+        "p95_abs_error_deg": 0.061817,
+        "max_abs_error_deg": 0.106707
+      },
+      "persistence_step8": {
+        "mae_deg": 0.024132,
+        "p95_abs_error_deg": 0.057465,
+        "max_abs_error_deg": 0.112099
+      },
+      "constant_velocity_step8": {
+        "mae_deg": 0.091284,
+        "p95_abs_error_deg": 0.202162,
+        "max_abs_error_deg": 0.320806
+      },
+      "model_steps1_to8": {
+        "mae_deg": 0.018551,
+        "p95_abs_error_deg": 0.05053,
+        "max_abs_error_deg": 0.106707
+      }
+    }
+  },
+  "limitations": [
+    "Evaluates new recorded controller trajectories, not learned policy control.",
+    "Recorded actions are known for each eight-step prediction; no action planning is tested.",
+    "One different sinusoidal trajectory alone does not establish broad generalisation."
+  ]
+}

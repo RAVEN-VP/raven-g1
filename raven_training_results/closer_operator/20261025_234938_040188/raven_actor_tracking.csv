@@ -1,0 +1,1 @@
+time_s,detected,pixels,image_bearing_deg,desired_pan_deg,requested_pan_deg,actual_pan_deg,tracking_error_deg,pan_velocity_deg_s,waist_yaw_deg,elbow_deg,grasp_error_m,actor_y_ground_truth_m

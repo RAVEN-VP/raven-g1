@@ -1,0 +1,22 @@
+{
+  "experiment": "G1 10-cm closer operator stance with IK-retargeted grasp",
+  "robot_forward_shift_m": 0.1,
+  "tripod_unchanged": true,
+  "validated_tracker_sha256": "2b7da3c47a8614b690bb20f2f461d0bb93a90a90b9f0c95a3d6c6b4648ecd038",
+  "grip_local_pos_m": [
+    -0.09520331,
+    0.04216317,
+    0.04810547
+  ],
+  "grip_local_quat_wxyz": [
+    -0.01174326,
+    -0.69758332,
+    0.70176734,
+    -0.14409096
+  ],
+  "time_to_tracking_s": 14.5,
+  "pregrasp_pos_threshold_m": 0.035,
+  "pregrasp_ori_threshold_deg": 18.0,
+  "assisted_grasp_unchanged": true,
+  "original_scripts_unchanged": true
+}

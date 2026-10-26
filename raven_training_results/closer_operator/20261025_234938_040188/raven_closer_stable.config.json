@@ -1,0 +1,13 @@
+{
+  "experiment": "Closer operator with stable grasp hold",
+  "g1_forward_shift_m": 0.1,
+  "validated_tracker_unchanged": true,
+  "calibrated_grip_unchanged": true,
+  "assisted_grasp_unchanged": true,
+  "ik_retargeted_approach_unchanged": true,
+  "post_grasp_elbow_adjustment": "disabled",
+  "pan_drift_limit_deg": 0.75,
+  "grasp_ready_s": 8.25,
+  "time_to_tracking_s": 11.25,
+  "output": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\closer_operator\\20261025_234938_040188"
+}

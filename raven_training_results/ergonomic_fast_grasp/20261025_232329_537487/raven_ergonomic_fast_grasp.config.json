@@ -1,0 +1,25 @@
+{
+  "experiment": "RAVEN faster grasp / downward-elbow posture ablation",
+  "validated_tracker_sha256": "2b7da3c47a8614b690bb20f2f461d0bb93a90a90b9f0c95a3d6c6b4648ecd038",
+  "baseline_unmodified_on_disk": true,
+  "physics_hz": 120.0,
+  "grasp_calibration_unchanged": true,
+  "assisted_fixed_joint_unchanged": true,
+  "pd_controller_unchanged": true,
+  "calibrated_camera_unchanged": true,
+  "pose_optimisation": "IK hand pose constrained; elbow-down nullspace objective",
+  "elbow_downward_goal_cm": 3.0,
+  "preferred_elbow_deg": 105.0,
+  "timings_s": {
+    "approach": 4.5,
+    "pre_close": 0.5,
+    "close_fingers": 2.5,
+    "grasp_settle": 0.75,
+    "elbow_prep": 4.0,
+    "soft_pan_release": 1.5,
+    "free_settle": 0.75,
+    "time_to_tracking": 14.5
+  },
+  "posture_log": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\ergonomic_fast_grasp\\20261025_232329_537487\\raven_elbow_posture_10hz.csv",
+  "notes": "A lower elbow is a soft nullspace objective, not a forced inverted elbow joint. Collision clearance and grasp safety still require experimental validation."
+}

@@ -1,0 +1,15 @@
+{
+  "experiment": "RAVEN G1 RGB-D physical actor tracking",
+  "status": "NO_VALID_BEARING",
+  "tracking_duration_s": 35.0,
+  "camera_frames": 0,
+  "detected_frames": 0,
+  "reference_bearing_deg": null,
+  "actor_motion_started": false,
+  "detection_rate": 0.0,
+  "mean_absolute_tracking_error_deg": null,
+  "observed_pan_min_deg": null,
+  "observed_pan_max_deg": null,
+  "assisted_grasp": true,
+  "csv": "C:\\RAVEN-Isaac\\raven-g1\\raven_training_results\\closer_grasp_alignment\\20261025_235826_511701\\raven_actor_tracking.csv"
+}

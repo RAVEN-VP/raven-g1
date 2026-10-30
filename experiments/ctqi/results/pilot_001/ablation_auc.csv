@@ -1,0 +1,6 @@
+model,auc
+full_CTQI,0.9886363636363636
+without_q_latency,0.9053030303030303
+without_q_position,0.9166666666666666
+without_q_smoothness,0.9867424242424242
+without_q_grip,0.8295454545454546

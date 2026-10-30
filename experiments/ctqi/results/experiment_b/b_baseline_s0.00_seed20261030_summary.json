@@ -1,0 +1,30 @@
+{
+  "condition": "baseline",
+  "arm_only": false,
+  "severity": 0.0,
+  "seed": 20261030,
+  "samples": 425,
+  "max_ik_error_m": 0.026136664102947925,
+  "actual_max_cube_lift_m": 0.003640387931809097,
+  "max_contact_supported_hold_lift_m": 0.0,
+  "initial_hand_cube_contact_samples": 0,
+  "actual_hold_contact_samples": 55,
+  "final_cube_position_m": [
+    0.28912207794856676,
+    -0.02640127557811292,
+    0.9237006710943336
+  ],
+  "target_cube_position_m": [
+    0.30053520606226264,
+    -0.0918769562048649,
+    0.9242189570127158
+  ],
+  "final_cube_error_m": 0.06646497473985266,
+  "lifted": false,
+  "contact_retained": true,
+  "placed": false,
+  "task_success": false,
+  "outcome_source": "Independent MuJoCo object poses and contacts",
+  "limitations": "Provisional Revo2 mounting and six-channel master actuation with distal mimic joints; no calibrated hardware command mapping.",
+  "status": "Experiment B feasibility baseline; not yet CTQI predictive validation."
+}

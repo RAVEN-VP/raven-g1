@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+"""Build the RAVEN G1-29DOF + BrainCo Revo2 MuJoCo model.
+
+Source of truth:
+- Unitree G1 29-DOF MuJoCo description for the arm/torso/leg model.
+- BrainCo brainco-description/revo2_system MJCF for Revo2 geometry and joint frames.
+- The matching BrainCo Revo2 URDF files for the five distal mimic relationships
+  on each hand. MuJoCo represents these with joint equality constraints.
+
+Expected robot structure:
+- 29 G1 actuators
+- 6 independent Revo2 actuators per hand
+- 5 mimic joints per hand (no independent actuators)
+- 51 robot joint coordinates total (29 G1 + 22 Revo2)
+- 41 actuators total (29 G1 + 12 Revo2)
+
+Run from any working directory:
+    python experiments/ctqi/src/build_unified_model.py
+
+This script does not modify the source G1 or BrainCo files.
+"""
+
+import copy
+import math
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+import mujoco
+
+
+REPO = Path(__file__).resolve().parents[3]
+G1_PATH = Path.home() / "G1-XR-Teleop/mujoco_xml/g1_29dof_vrtest.xml"
+
+HAND_ROOT = REPO / "external/brainco-description/revo2_system"
+HAND_PATHS = {
+    "left": HAND_ROOT / "mjcf/revo2_left.xml",
+    "right": HAND_ROOT / "mjcf/revo2_right.xml",
+}
+
+OUTPUT = REPO / "experiments/ctqi/models/g1_revo2_ctqi.xml"
+
+# The uploaded G1 MJCF has no tool_connector_link. These are the direct
+# wrist_yaw_link -> Revo2 base transforms from the G1 + BrainCo integration
+# reference, expressed as MuJoCo wxyz quaternions.
+HAND_MOUNTS = {
+    "left": {
+        "pos": "0.0591 0 0",
+        "quat": "0.5 -0.5 0.5 -0.5",  # rpy (-pi/2, 0, -pi/2)
+    },
+    "right": {
+        "pos": "0.0591 0 0",
+        "quat": "0.5 0.5 0.5 0.5",    # rpy (+pi/2, 0, +pi/2)
+    },
+}
+
+# Six independent command channels per hand.
+MASTER_SUFFIXES = (
+    "thumb_metacarpal",
+    "thumb_proximal",
+    "index_proximal",
+    "middle_proximal",
+    "ring_proximal",
+    "pinky_proximal",
+)
+
+# Current matching BrainCo brainco-description/revo2_system/urdf mimic map.
+# Each distal joint follows its proximal joint. Offset is zero.
+MIMIC_SPECS = (
+    ("thumb_distal", "thumb_proximal", 1.0),
+    ("index_distal", "index_proximal", 1.155),
+    ("middle_distal", "middle_proximal", 1.155),
+    ("ring_distal", "ring_proximal", 1.155),
+    ("pinky_distal", "pinky_proximal", 1.155),
+)
+
+
+def ensure_section(root, tag):
+    existing = root.find(tag)
+    if existing is not None:
+        return existing
+
+    order = (
+        "compiler", "option", "size", "visual", "statistic",
+        "default", "asset", "worldbody", "contact", "equality",
+        "tendon", "actuator", "sensor", "keyframe", "custom",
+    )
+    rank = order.index(tag)
+    section = ET.Element(tag)
+
+    index = next(
+        (
+            i for i, child in enumerate(root)
+            if child.tag in order and order.index(child.tag) > rank
+        ),
+        len(root),
+    )
+    root.insert(index, section)
+    return section
+
+
+def prefix_classes(element, prefix):
+    """Namespace MJCF default class references for the imported hand."""
+    for node in element.iter():
+        if node.get("class"):
+            node.set("class", prefix + node.get("class"))
+        if node.get("childclass"):
+            node.set("childclass", prefix + node.get("childclass"))
+
+
+def resolve_g1_mesh_directories(root):
+    compiler = root.find("compiler")
+    if compiler is None:
+        raise RuntimeError("G1 MJCF is missing its <compiler> element.")
+
+    for attr in ("meshdir", "texturedir"):
+        value = compiler.get(attr)
+        if not value:
+            continue
+        path = Path(value)
+        if not path.is_absolute():
+            path = (G1_PATH.parent / path).resolve()
+        if not path.exists():
+            raise FileNotFoundError(
+                f"G1 compiler {attr} does not exist: {path}"
+            )
+        compiler.set(attr, str(path))
+
+
+def validate_mesh_assets(root):
+    """Fail early on missing meshes instead of producing a broken XML."""
+    compiler = root.find("compiler")
+    meshdir = Path(compiler.get("meshdir", ".")) if compiler is not None else Path(".")
+    missing = []
+
+    asset_section = root.find("asset")
+    if asset_section is None:
+        raise RuntimeError("Unified model has no <asset> section.")
+
+    for mesh in asset_section.findall("mesh"):
+        filename = mesh.get("file")
+        if not filename:
+            continue
+        path = Path(filename)
+        if not path.is_absolute():
+            path = meshdir / path
+        if not path.exists():
+            missing.append((mesh.get("name", "<unnamed>"), str(path)))
+
+    if missing:
+        details = "\n".join(f"  {name}: {path}" for name, path in missing[:20])
+        extra = "" if len(missing) <= 20 else f"\n  ... and {len(missing) - 20} more"
+        raise FileNotFoundError(
+            "Unified model references missing mesh files:\n" + details + extra
+        )
+
+
+def copy_hand_assets(hand_root, target_assets, hand_path, prefix):
+    existing_names = {
+        item.get("name")
+        for item in target_assets
+        if item.get("name")
+    }
+    asset_map = {}
+
+    source_assets = hand_root.find("asset")
+    if source_assets is None:
+        raise RuntimeError(f"{hand_path} has no <asset> section.")
+
+    for asset in source_assets:
+        copied = copy.deepcopy(asset)
+        old_name = copied.get("name")
+
+        if old_name:
+            new_name = old_name
+            if new_name in existing_names:
+                new_name = prefix + old_name
+            copied.set("name", new_name)
+            existing_names.add(new_name)
+            asset_map[old_name] = new_name
+
+        filename = copied.get("file")
+        if filename:
+            mesh_path = Path(filename)
+            if not mesh_path.is_absolute():
+                mesh_path = (hand_path.parent / mesh_path).resolve()
+            if not mesh_path.exists():
+                raise FileNotFoundError(
+                    f"Missing {prefix} hand asset: {mesh_path}"
+                )
+            copied.set("file", str(mesh_path))
+
+        target_assets.append(copied)
+
+    return asset_map
+
+
+def add_mimic_constraints(root, side, hand_body):
+    equality = ensure_section(root, "equality")
+    hand_joint_names = {
+        joint.get("name")
+        for joint in hand_body.iter("joint")
+        if joint.get("name")
+    }
+
+    for distal_suffix, proximal_suffix, multiplier in MIMIC_SPECS:
+        distal = f"{side}_{distal_suffix}_joint"
+        proximal = f"{side}_{proximal_suffix}_joint"
+
+        if distal not in hand_joint_names or proximal not in hand_joint_names:
+            raise RuntimeError(
+                f"Missing Revo2 mimic pair: {distal} -> {proximal}"
+            )
+
+        existing = next(
+            (
+                item for item in equality.findall("joint")
+                if item.get("joint1") == distal
+            ),
+            None,
+        )
+
+        expected_polycoef = f"0 {multiplier:.8g} 0 0 0"
+        if existing is not None:
+            if (
+                existing.get("joint2") != proximal
+                or existing.get("polycoef") != expected_polycoef
+            ):
+                raise RuntimeError(
+                    f"Conflicting equality already exists for {distal}."
+                )
+            continue
+
+        ET.SubElement(
+            equality,
+            "joint",
+            {
+                "name": f"revo2_mimic_{side}_{distal_suffix}",
+                "joint1": distal,
+                "joint2": proximal,
+                "polycoef": expected_polycoef,
+                # Stiff enough to behave as a mechanical coupling while
+                # remaining compatible with the default 2 ms MuJoCo step.
+                "solref": "0.005 1",
+            },
+        )
+
+
+def add_hand_actuators_and_sensors(root, side, hand_body):
+    actuators = ensure_section(root, "actuator")
+    sensors = ensure_section(root, "sensor")
+
+    joints = [
+        joint for joint in hand_body.iter("joint")
+        if joint.get("name")
+    ]
+    hinge_joints = [
+        joint for joint in joints
+        if joint.get("type", "hinge") == "hinge"
+    ]
+
+    if len(hinge_joints) != 11:
+        raise RuntimeError(
+            f"{side} Revo2 expected 11 hinge joints; found {len(hinge_joints)}."
+        )
+
+    master_names = {
+        f"{side}_{suffix}_joint"
+        for suffix in MASTER_SUFFIXES
+    }
+    mimic_names = {
+        f"{side}_{distal}_joint"
+        for distal, _proximal, _multiplier in MIMIC_SPECS
+    }
+
+    found_masters = set()
+    found_mimics = set()
+
+    existing_actuator_joints = {
+        actuator.get("joint")
+        for actuator in actuators
+        if actuator.get("joint")
+    }
+
+    for joint in hinge_joints:
+        name = joint.get("name")
+
+        if name in master_names:
+            limits = joint.get("actuatorfrcrange")
+            if not limits:
+                raise RuntimeError(
+                    f"Independent Revo2 joint has no actuatorfrcrange: {name}"
+                )
+            if name in existing_actuator_joints:
+                raise RuntimeError(
+                    f"An actuator already targets Revo2 master joint {name}."
+                )
+
+            lower, upper = map(float, limits.split())
+            ET.SubElement(
+                actuators,
+                "motor",
+                {
+                    "name": name + "_sim_motor",
+                    "joint": name,
+                    "gear": "1",
+                    "ctrllimited": "true",
+                    "ctrlrange": f"{lower} {upper}",
+                    "forcelimited": "true",
+                    "forcerange": f"{lower} {upper}",
+                },
+            )
+            found_masters.add(name)
+
+        elif name in mimic_names:
+            # Distal joints are kinematically coupled, not independently driven.
+            found_mimics.add(name)
+
+        else:
+            raise RuntimeError(
+                f"Unexpected Revo2 hinge joint in {side} hand: {name}"
+            )
+
+        # Keep state/force telemetry for all 11 joints, including mimic joints.
+        ET.SubElement(
+            sensors, "jointpos",
+            {"name": name + "_pos", "joint": name},
+        )
+        ET.SubElement(
+            sensors, "jointvel",
+            {"name": name + "_vel", "joint": name},
+        )
+        ET.SubElement(
+            sensors, "jointactuatorfrc",
+            {"name": name + "_sim_actuator_force", "joint": name},
+        )
+
+    if len(found_masters) != 6 or len(found_mimics) != 5:
+        raise RuntimeError(
+            f"{side} Revo2 mapping incomplete: "
+            f"{len(found_masters)} masters, {len(found_mimics)} mimics."
+        )
+
+    print(
+        f"  {side}: 6 independent actuators + 5 mimic constraints; "
+        "11 joint states retained."
+    )
+
+
+def integrate_hand(root, side, hand_path):
+    print(f"\nIntegrating {side.upper()} Revo2...")
+
+    if not hand_path.exists():
+        raise FileNotFoundError(hand_path)
+
+    hand_root = ET.parse(hand_path).getroot()
+    prefix = f"revo_{side}_"
+
+    compiler = root.find("compiler")
+    hand_compiler = hand_root.find("compiler")
+    if compiler is None:
+        raise RuntimeError("G1 model is missing <compiler>.")
+
+    if hand_compiler is not None:
+        for attr in ("autolimits", "balanceinertia"):
+            if hand_compiler.get(attr) is not None:
+                compiler.set(attr, hand_compiler.get(attr))
+
+    # Import the hand's default classes inside a side-specific namespace.
+    default_class = None
+    hand_defaults = hand_root.find("default")
+    if hand_defaults is not None:
+        target_defaults = ensure_section(root, "default")
+        default_class = prefix + "main"
+        wrapper = ET.Element("default", {"class": default_class})
+
+        for child in hand_defaults:
+            copied = copy.deepcopy(child)
+            prefix_classes(copied, prefix)
+            wrapper.append(copied)
+
+        target_defaults.append(wrapper)
+
+    target_assets = ensure_section(root, "asset")
+    asset_map = copy_hand_assets(
+        hand_root, target_assets, hand_path, prefix
+    )
+
+    source_world = hand_root.find("worldbody")
+    if source_world is None:
+        raise RuntimeError(f"{hand_path} has no <worldbody> section.")
+
+    hand_bodies = source_world.findall("body")
+    if len(hand_bodies) != 1:
+        raise RuntimeError(
+            f"Expected one root body in {hand_path}; found {len(hand_bodies)}."
+        )
+
+    hand_body = copy.deepcopy(hand_bodies[0])
+    expected_root_name = f"{side}_hand_base_link"
+    if hand_body.get("name") != expected_root_name:
+        raise RuntimeError(
+            f"Expected hand root {expected_root_name}; "
+            f"found {hand_body.get('name')}."
+        )
+
+    prefix_classes(hand_body, prefix)
+
+    # Remap mesh/material references if an asset name collided.
+    for node in hand_body.iter():
+        for attr in ("mesh", "material", "texture", "hfield", "skin"):
+            value = node.get(attr)
+            if value in asset_map:
+                node.set(attr, asset_map[value])
+
+    if default_class and not hand_body.get("childclass"):
+        hand_body.set("childclass", default_class)
+
+    # Correct side-specific G1 wrist-to-Revo2 transform.
+    hand_body.set("pos", HAND_MOUNTS[side]["pos"])
+    hand_body.set("quat", HAND_MOUNTS[side]["quat"])
+
+    wrist_name = f"{side}_wrist_yaw_link"
+    wrist = root.find(f".//body[@name='{wrist_name}']")
+    if wrist is None:
+        raise RuntimeError(f"Missing G1 wrist body: {wrist_name}")
+
+    if root.find(f".//body[@name='{expected_root_name}']") is not None:
+        raise RuntimeError(
+            f"{expected_root_name} already exists in the G1 source model."
+        )
+
+    # Remove only the legacy rubber-hand mesh. Do not delete arbitrary
+    # wrist capsules/boxes: they may be legitimate wrist collision geometry.
+    for geom in list(wrist.findall("geom")):
+        if geom.get("mesh") == f"{side}_rubber_hand":
+            wrist.remove(geom)
+
+    wrist.append(hand_body)
+
+    # Preserve any hand-specific collision/equality/tendon definitions.
+    for tag in ("contact", "equality", "tendon"):
+        source = hand_root.find(tag)
+        if source is None:
+            continue
+        destination = ensure_section(root, tag)
+        for child in source:
+            destination.append(copy.deepcopy(child))
+
+    add_mimic_constraints(root, side, hand_body)
+    add_hand_actuators_and_sensors(root, side, hand_body)
+
+    print(
+        f"  Attached to {wrist_name} at "
+        f"pos={HAND_MOUNTS[side]['pos']} quat={HAND_MOUNTS[side]['quat']}"
+    )
+
+
+def validate_mimic_map(root):
+    equality = root.find("equality")
+    if equality is None:
+        raise RuntimeError("Unified model is missing Revo2 mimic constraints.")
+
+    expected = 10
+    found = [
+        item for item in equality.findall("joint")
+        if item.get("name", "").startswith("revo2_mimic_")
+    ]
+    if len(found) != expected:
+        raise RuntimeError(
+            f"Expected {expected} Revo2 mimic constraints; found {len(found)}."
+        )
+
+
+def main():
+    if not G1_PATH.exists():
+        raise FileNotFoundError(
+            f"G1 source model not found: {G1_PATH}\n"
+            "Set G1_PATH in build_unified_model.py to your installed "
+            "g1_29dof_vrtest.xml."
+        )
+
+    tree = ET.parse(G1_PATH)
+    root = tree.getroot()
+    root.set("model", "g1_29dof_revo2_ctqi")
+
+    resolve_g1_mesh_directories(root)
+
+    # The source G1 model must contribute its 29 body actuators.
+    base_actuators = root.find("actuator")
+    if base_actuators is None or len(base_actuators.findall("motor")) != 29:
+        count = 0 if base_actuators is None else len(base_actuators.findall("motor"))
+        raise RuntimeError(
+            f"Expected 29 G1 motor actuators before hand integration; found {count}."
+        )
+
+    for side in ("left", "right"):
+        integrate_hand(root, side, HAND_PATHS[side])
+
+    validate_mimic_map(root)
+    validate_mesh_assets(root)
+
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    ET.indent(tree, space="  ")
+    tree.write(OUTPUT, encoding="utf-8", xml_declaration=True)
+
+    print("\n========== COMPILING UNIFIED MODEL ==========")
+    model = mujoco.MjModel.from_xml_path(str(OUTPUT))
+    data = mujoco.MjData(model)
+    data.qpos[:] = model.qpos0
+    data.qvel[:] = 0.0
+    mujoco.mj_forward(model, data)
+
+    expected = {
+        "joints": (model.njnt, 54),
+        "qpos dimensions": (model.nq, 72),
+        "qvel dimensions": (model.nv, 69),
+        "actuators": (model.nu, 41),
+        "sensors": (model.nsensor, 161),
+        "equality constraints": (model.neq, 10),
+    }
+
+    print(f"Output: {OUTPUT}")
+    for label, (actual, target) in expected.items():
+        status = "PASS" if actual == target else "FAIL"
+        print(f"{status}: {label}: {actual} / {target}")
+        if actual != target:
+            raise RuntimeError(
+                f"Unified model structure mismatch for {label}: "
+                f"expected {target}, got {actual}."
+            )
+
+    print("\nRevo2 structure: 22 hand joints, 12 independent hand actuators,")
+    print("                 10 distal mimic constraints.")
+    print("Robot structure: 51 robot joint coordinates, 41 actuators.")
+    print("Unified MuJoCo model compiled and passed structural checks.")
+
+
+if __name__ == "__main__":
+    main()

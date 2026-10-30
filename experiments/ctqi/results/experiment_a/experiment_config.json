@@ -1,0 +1,20 @@
+{
+  "experiment": "CTQI Experiment A",
+  "type": "Physics-driven construct-validity pilot",
+  "trials": 21,
+  "seed": 20261030,
+  "duration_s": 8.0,
+  "fixed_stance": true,
+  "revo2_fingers_locked": true,
+  "provisional_normalisations": {
+    "temporal_s": 0.15,
+    "spatial_m": 0.025,
+    "excess_jerk_m_s3": 5
+  },
+  "provisional_weights": {
+    "q_temporal": 0.3333333333333333,
+    "q_spatial": 0.3333333333333333,
+    "q_motion": 0.3333333333333333
+  },
+  "limitations": "No grip evaluation, independent manipulation outcome validation, or downstream learning claim."
+}

@@ -1,0 +1,43 @@
+{
+  "experiment": "CTQI Pilot 001",
+  "synthetic_only": true,
+  "trials": 70,
+  "conditions": [
+    "baseline",
+    "latency",
+    "position",
+    "smoothness",
+    "grip",
+    "continuity",
+    "combined"
+  ],
+  "phases": [
+    "reach",
+    "align",
+    "grip",
+    "hold",
+    "release"
+  ],
+  "revo2_schema": "2 hands x 6 generic channels",
+  "hand_signals": [
+    "position_norm",
+    "velocity_norm",
+    "synthetic_load_proxy"
+  ],
+  "provisional_weights": {
+    "q_latency": 0.25,
+    "q_position": 0.25,
+    "q_smoothness": 0.25,
+    "q_grip": 0.25
+  },
+  "task_success_auc": 0.9886363636363636,
+  "task_success_rate": 0.6857142857142857,
+  "data_valid_rate": 0.7142857142857143,
+  "methodology": "Task success is an independent outcome, not a CTQI validity gate. CTQI is calculated for failed trials as well as successful trials. Data validity and learning eligibility are reported separately.",
+  "limitations": [
+    "Synthetic data, not measured G1 or Revo2 performance.",
+    "Generic channel indices; actual motor mapping not yet connected.",
+    "Equal weights and normalisation scales are provisional.",
+    "Exploratory AUC and ablation require held-out validation."
+  ]
+}

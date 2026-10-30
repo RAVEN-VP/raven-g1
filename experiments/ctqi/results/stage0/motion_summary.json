@@ -1,0 +1,438 @@
+{
+  "mode": "motion",
+  "seconds_simulated": 6.999999999999451,
+  "samples": 350,
+  "fixed_stance": true,
+  "neutral_hands_held": true,
+  "hand_actuators": 12,
+  "mimic_constraints": 10,
+  "arm_tracking_rms_rad": 0.005677984368076895,
+  "hand_tracking_rms_rad": 0.008432617611734444,
+  "worst_penetration_m": -0.04882455465631103,
+  "cube_displacement_m": 0.0005182859183838068,
+  "initial_cube_hand_contacts": 0,
+  "initial_cube_robot_contacts": 0,
+  "initial_contact_pairs": [
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "geom_56",
+      "body2": "left_wrist_roll_link",
+      "distance_m": -0.0019649048468698208
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.02644476825287008
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.01146734397982356
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.011459118478511564
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.011465199195353125
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_index_distal_link_collision_0",
+      "body2": "left_index_distal_link",
+      "distance_m": -0.027139348466550833
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_index_distal_link_collision_0",
+      "body2": "left_index_distal_link",
+      "distance_m": -0.027122991639809663
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_index_distal_link_collision_0",
+      "body2": "left_index_distal_link",
+      "distance_m": -0.010968088809758985
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_index_distal_link_collision_0",
+      "body2": "left_index_distal_link",
+      "distance_m": -0.010957949524389747
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_index_touch_link_collision_0",
+      "body2": "left_index_touch_link",
+      "distance_m": -0.019164958230506457
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_middle_distal_link_collision_0",
+      "body2": "left_middle_distal_link",
+      "distance_m": -0.04834344793630678
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_middle_distal_link_collision_0",
+      "body2": "left_middle_distal_link",
+      "distance_m": -0.0017389725170063428
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_middle_distal_link_collision_0",
+      "body2": "left_middle_distal_link",
+      "distance_m": -0.0017423319956701877
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_middle_distal_link_collision_0",
+      "body2": "left_middle_distal_link",
+      "distance_m": -0.0015969929801608138
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_middle_touch_link_collision_0",
+      "body2": "left_middle_touch_link",
+      "distance_m": -0.02663525304193965
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_distal_link_collision_0",
+      "body2": "left_ring_distal_link",
+      "distance_m": -0.04882455465631103
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_distal_link_collision_0",
+      "body2": "left_ring_distal_link",
+      "distance_m": -0.004653859334449305
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_distal_link_collision_0",
+      "body2": "left_ring_distal_link",
+      "distance_m": -0.0046553024769918384
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_distal_link_collision_0",
+      "body2": "left_ring_distal_link",
+      "distance_m": -0.004489203323805803
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_distal_link_collision_0",
+      "body2": "left_ring_distal_link",
+      "distance_m": -0.004490521977021876
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_ring_touch_link_collision_0",
+      "body2": "left_ring_touch_link",
+      "distance_m": -0.0291642952210597
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_distal_link_collision_0",
+      "body2": "left_pinky_distal_link",
+      "distance_m": -0.02777639204820064
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_distal_link_collision_0",
+      "body2": "left_pinky_distal_link",
+      "distance_m": -0.013504467938770085
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_distal_link_collision_0",
+      "body2": "left_pinky_distal_link",
+      "distance_m": -0.013505518759094516
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_distal_link_collision_0",
+      "body2": "left_pinky_distal_link",
+      "distance_m": -0.013506647762071554
+    },
+    {
+      "geom1": "left_hand_contact_palm",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_distal_link_collision_0",
+      "body2": "left_pinky_distal_link",
+      "distance_m": -0.013505241358206304
+    },
+    {
+      "geom1": "left_hand_contact_capsule",
+      "body1": "left_wrist_yaw_link",
+      "geom2": "left_pinky_touch_link_collision_0",
+      "body2": "left_pinky_touch_link",
+      "distance_m": -0.02244345300080071
+    },
+    {
+      "geom1": "left_hand_base_link_collision_0",
+      "body1": "left_hand_base_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.00018964704607281766
+    },
+    {
+      "geom1": "left_hand_base_link_collision_0",
+      "body1": "left_hand_base_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.000201097222490687
+    },
+    {
+      "geom1": "left_hand_base_link_collision_0",
+      "body1": "left_hand_base_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.00019614558326194094
+    },
+    {
+      "geom1": "left_hand_base_link_collision_0",
+      "body1": "left_hand_base_link",
+      "geom2": "left_thumb_proximal_link_collision_0",
+      "body2": "left_thumb_proximal_link",
+      "distance_m": -0.0001921895580489197
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "geom_108",
+      "body2": "right_wrist_roll_link",
+      "distance_m": -0.001964903831128427
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_thumb_proximal_link_collision_0",
+      "body2": "right_thumb_proximal_link",
+      "distance_m": -0.025517635258564916
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_thumb_proximal_link_collision_0",
+      "body2": "right_thumb_proximal_link",
+      "distance_m": -0.01059224326531696
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_thumb_proximal_link_collision_0",
+      "body2": "right_thumb_proximal_link",
+      "distance_m": -0.010600471093502933
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_thumb_proximal_link_collision_0",
+      "body2": "right_thumb_proximal_link",
+      "distance_m": -0.010598324450282097
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_index_distal_link_collision_0",
+      "body2": "right_index_distal_link",
+      "distance_m": -0.027061314851747068
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_index_distal_link_collision_0",
+      "body2": "right_index_distal_link",
+      "distance_m": -0.010976008693070494
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_index_distal_link_collision_0",
+      "body2": "right_index_distal_link",
+      "distance_m": -0.010942935623330843
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_index_touch_link_collision_0",
+      "body2": "right_index_touch_link",
+      "distance_m": -0.01916379250593745
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_middle_distal_link_collision_0",
+      "body2": "right_middle_distal_link",
+      "distance_m": -0.04835071517839628
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_middle_distal_link_collision_0",
+      "body2": "right_middle_distal_link",
+      "distance_m": -0.0017553297534961718
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_middle_distal_link_collision_0",
+      "body2": "right_middle_distal_link",
+      "distance_m": -0.0017553296040778198
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_middle_distal_link_collision_0",
+      "body2": "right_middle_distal_link",
+      "distance_m": -0.00159875805794186
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_middle_touch_link_collision_0",
+      "body2": "right_middle_touch_link",
+      "distance_m": -0.026627771302394444
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_distal_link_collision_0",
+      "body2": "right_ring_distal_link",
+      "distance_m": -0.048810869548338354
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_distal_link_collision_0",
+      "body2": "right_ring_distal_link",
+      "distance_m": -0.00448910410921859
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_distal_link_collision_0",
+      "body2": "right_ring_distal_link",
+      "distance_m": -0.004653385621448746
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_distal_link_collision_0",
+      "body2": "right_ring_distal_link",
+      "distance_m": -0.0046538486745247905
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_distal_link_collision_0",
+      "body2": "right_ring_distal_link",
+      "distance_m": -0.00449092138798432
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_ring_touch_link_collision_0",
+      "body2": "right_ring_touch_link",
+      "distance_m": -0.029148738101056643
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_pinky_distal_link_collision_0",
+      "body2": "right_pinky_distal_link",
+      "distance_m": -0.02776340910755884
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_pinky_distal_link_collision_0",
+      "body2": "right_pinky_distal_link",
+      "distance_m": -0.013495685343825232
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_pinky_distal_link_collision_0",
+      "body2": "right_pinky_distal_link",
+      "distance_m": -0.013494681248621687
+    },
+    {
+      "geom1": "right_hand_contact_palm",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_pinky_distal_link_collision_0",
+      "body2": "right_pinky_distal_link",
+      "distance_m": -0.01349427921438404
+    },
+    {
+      "geom1": "right_hand_contact_capsule",
+      "body1": "right_wrist_yaw_link",
+      "geom2": "right_pinky_touch_link_collision_0",
+      "body2": "right_pinky_touch_link",
+      "distance_m": -0.02242612272613525
+    },
+    {
+      "geom1": "teleop_table_top",
+      "body1": "teleop_table",
+      "geom2": "teleop_cube_geom",
+      "body2": "teleop_cube",
+      "distance_m": -4.85722573273506e-17
+    },
+    {
+      "geom1": "teleop_table_top",
+      "body1": "teleop_table",
+      "geom2": "teleop_cube_geom",
+      "body2": "teleop_cube",
+      "distance_m": -4.85722573273506e-17
+    },
+    {
+      "geom1": "teleop_table_top",
+      "body1": "teleop_table",
+      "geom2": "teleop_cube_geom",
+      "body2": "teleop_cube",
+      "distance_m": -4.85722573273506e-17
+    },
+    {
+      "geom1": "teleop_table_top",
+      "body1": "teleop_table",
+      "geom2": "teleop_cube_geom",
+      "body2": "teleop_cube",
+      "distance_m": -4.85722573273506e-17
+    }
+  ],
+  "scientific_status": "ENGINEERING SHAKEOUT ONLY. NOT CTQI VALIDATION."
+}
